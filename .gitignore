@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+__pycache__/
+*.pyc
+.venv/
+backend/data/
+backend/media/
+.env
+
+docs
+.idea
