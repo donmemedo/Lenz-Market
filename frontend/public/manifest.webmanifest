@@ -1,0 +1,16 @@
+{
+  "name": "قاب | Qaab — بازار عکس ایرانی",
+  "short_name": "قاب",
+  "description": "بازار عکس ایرانی؛ عکس بفروش، در مأموریت برندها شرکت کن.",
+  "start_url": "/fa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#08080e",
+  "theme_color": "#6d3fff",
+  "dir": "rtl",
+  "lang": "fa",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

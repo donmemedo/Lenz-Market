@@ -1,0 +1,156 @@
+export const locales = ["fa", "en"] as const;
+export type Locale = (typeof locales)[number];
+export const defaultLocale: Locale = "fa";
+
+export const dict = {
+  fa: {
+    dir: "rtl",
+    brand: "قاب",
+    tagline: "بازار عکس ایرانی",
+    nav: { explore: "گشت‌وگذار", missions: "مأموریت‌ها", creators: "عکاس‌ها", pricing: "تعرفه", dashboard: "پیش‌خوان", upload: "بارگذاری" },
+    cta: { login: "ورود", signup: "ثبت‌نام", logout: "خروج", start: "رایگان شروع کنید", sell: "عکس‌هایتان را بفروشید", browse: "دیدن بازار" },
+    hero: {
+      badge: "بیش از ۱۲٬۰۰۰ عکاس ایرانی",
+      title1: "عکس‌هایت را",
+      title2: "به درآمد",
+      title3: "تبدیل کن",
+      sub: "با گوشی‌ات عکس بگیر، در بازار قاب بفروش و در مأموریت برندها شرکت کن. ۵۰٪ هر فروش مستقیم به کیف پول تو می‌رسد.",
+      search: "دنبال چه عکسی می‌گردید؟",
+      searchBtn: "جستجو",
+      trust: "مورد اعتماد برندهای ایرانی",
+    },
+    stats: { photos: "عکس در بازار", creators: "عکاس فعال", missions: "مأموریت برند", paid: "پرداختی به عکاس‌ها" },
+    sections: {
+      categories: "دسته‌بندی‌ها", categoriesSub: "از طبیعت تا کسب‌وکار، قاب دلخواهت را پیدا کن",
+      featured: "عکس‌های برگزیده", featuredSub: "منتخب سردبیر از میان هزاران قاب",
+      missions: "مأموریت‌های برندها", missionsSub: "عکس بفرست، جایزه بگیر",
+      how: "چطور کار می‌کند؟", howSub: "سه گام تا اولین فروش",
+      creators: "عکاس‌های برتر", creatorsSub: "آدم‌هایی که پشت این قاب‌ها هستند",
+      faq: "پرسش‌های پرتکرار",
+    },
+    how: [
+      { t: "بارگذاری کن", d: "عکس‌هایت را از گوشی یا رایانه بالا بفرست؛ در چند ثانیه در بازار قرار می‌گیرد." },
+      { t: "دیده شو", d: "برندها و کسب‌وکارها در بازار جستجو می‌کنند و در مأموریت‌ها دنبال قاب تو می‌گردند." },
+      { t: "درآمد بگیر", d: "۵۰٪ هر فروش به کیف پولت می‌نشیند و هر زمان بخواهی برداشت می‌کنی." },
+    ],
+    faq: [
+      { q: "مالکیت عکس‌هایم با من می‌ماند؟", a: "بله. حق مالکیت همیشه برای شماست؛ شما تنها مجوز استفاده را به خریدار می‌دهید و می‌توانید همان عکس را بارها بفروشید." },
+      { q: "چه زمانی می‌توانم برداشت کنم؟", a: "از مبلغ ۵۰۰٬۰۰۰ تومان به بالا، هر زمان از پیش‌خوان درخواست برداشت ثبت کنید. تسویه تا ۷۲ ساعت کاری انجام می‌شود." },
+      { q: "با گوشی هم می‌شود عکاسی کرد؟", a: "قطعاً. بیشتر فروش‌های قاب با عکس‌های گوشی انجام می‌شود؛ اصالت لحظه مهم‌تر از دوربین است." },
+      { q: "مأموریت برندها چیست؟", a: "برندها یک ایده اعلام می‌کنند و جایزه می‌گذارند. شما عکس می‌فرستید و در صورت انتخاب، جایزه و مبلغ فروش را می‌گیرید." },
+    ],
+    photo: {
+      buy: "خرید مجوز", price: "قیمت", license: "مجوز استفاده", standard: "استاندارد", extended: "نامحدود تجاری",
+      standardD: "استفاده در شبکه‌های اجتماعی، وب‌سایت و محتوای دیجیتال",
+      extendedD: "استفاده نامحدود تجاری، تبلیغات محیطی و بسته‌بندی",
+      likes: "پسند", sales: "فروش", by: "عکاس", similar: "قاب‌های مشابه", download: "بارگیری", tags: "برچسب‌ها",
+      bought: "خرید با موفقیت انجام شد", owned: "این عکس متعلق به شماست",
+    },
+    explore: {
+      title: "بازار عکس", sub: "میان هزاران قاب ایرانی بگرد",
+      all: "همه", sort: "مرتب‌سازی", trending: "پرطرفدار", newest: "تازه‌ترین",
+      priceLow: "ارزان‌ترین", priceHigh: "گران‌ترین", popular: "پرفروش‌ترین",
+      empty: "قابی با این مشخصات پیدا نشد", results: "قاب",
+    },
+    missions: { open: "باز", closed: "بسته‌شده", reward: "جایزه", deadline: "مهلت", submissions: "عکس ارسالی", join: "شرکت در مأموریت", brief: "خلاصه مأموریت", entries: "ارسال‌های این مأموریت", days: "روز باقی‌مانده" },
+    auth: {
+      loginT: "خوش آمدید", loginS: "برای ادامه وارد حساب کاربری شوید",
+      signupT: "به قاب بپیوندید", signupS: "ساخت حساب کاربری کمتر از یک دقیقه طول می‌کشد",
+      name: "نام و نام خانوادگی", email: "رایانامه (ایمیل)", password: "رمز عبور",
+      haveAccount: "حساب کاربری دارید؟", noAccount: "هنوز عضو نشده‌اید؟",
+      demo: "ورود با حساب نمایشی", terms: "با ادامه، شرایط استفاده و حریم خصوصی را می‌پذیرم.",
+      empty: "اینجا نباید خالی باشد",
+    },
+    dash: {
+      title: "پیش‌خوان", hello: "سلام",
+      balance: "موجودی کیف پول", photos: "قاب‌های من", sales: "فروش‌ها", likes: "پسندها", revenue: "درآمد کل",
+      withdraw: "درخواست برداشت", myPhotos: "قاب‌های من", purchases: "خریدهای من",
+      emptyPhotos: "هنوز قابی بارگذاری نکرده‌اید", emptyBuys: "هنوز خریدی ثبت نشده است",
+    },
+    upload: {
+      title: "بارگذاری قاب تازه", sub: "عکس را بکشید و اینجا رها کنید یا از دستگاه انتخاب کنید",
+      pick: "انتخاب عکس", name: "عنوان", nameFa: "عنوان فارسی", desc: "توضیح", category: "دسته‌بندی",
+      tags: "برچسب‌ها (با ویرگول جدا کنید)", price: "قیمت (تومان)", mission: "ارسال برای مأموریت", none: "بدون مأموریت",
+      submit: "انتشار در بازار", success: "قاب شما منتشر شد",
+    },
+    footer: { rights: "همه حقوق محفوظ است", made: "ساخته‌شده با ❤️ در ایران", product: "محصول", company: "شرکت", legal: "قوانین", about: "درباره ما", contact: "تماس با ما", privacy: "حریم خصوصی", terms: "شرایط استفاده", help: "راهنما" },
+    common: { toman: "تومان", loading: "در حال بارگذاری…", more: "بیشتر", back: "بازگشت", theme: "پوسته", lang: "زبان", menu: "فهرست" },
+  },
+  en: {
+    dir: "ltr",
+    brand: "Qaab",
+    tagline: "Iranian photo marketplace",
+    nav: { explore: "Explore", missions: "Missions", creators: "Creators", pricing: "Pricing", dashboard: "Dashboard", upload: "Upload" },
+    cta: { login: "Log in", signup: "Sign up", logout: "Log out", start: "Start for free", sell: "Sell your photos", browse: "Browse market" },
+    hero: {
+      badge: "12,000+ Iranian photographers",
+      title1: "Turn your",
+      title2: "photos into",
+      title3: "income",
+      sub: "Shoot with your phone, sell on the Qaab market and join brand missions. 50% of every sale lands straight in your wallet.",
+      search: "What photo are you looking for?",
+      searchBtn: "Search",
+      trust: "Trusted by Iranian brands",
+    },
+    stats: { photos: "photos on the market", creators: "active creators", missions: "brand missions", paid: "paid out to creators" },
+    sections: {
+      categories: "Categories", categoriesSub: "From nature to business — find your frame",
+      featured: "Featured frames", featuredSub: "Editor's picks from thousands of shots",
+      missions: "Brand missions", missionsSub: "Submit a photo, win the reward",
+      how: "How it works", howSub: "Three steps to your first sale",
+      creators: "Top creators", creatorsSub: "The people behind these frames",
+      faq: "Frequently asked",
+    },
+    how: [
+      { t: "Upload", d: "Send your shots from phone or desktop — they hit the market in seconds." },
+      { t: "Get discovered", d: "Brands and businesses search the market and hunt for your frame in missions." },
+      { t: "Get paid", d: "50% of every sale lands in your wallet, withdraw whenever you want." },
+    ],
+    faq: [
+      { q: "Do I keep the copyright?", a: "Always. You keep ownership and simply license the photo — you can sell the same frame again and again." },
+      { q: "When can I withdraw?", a: "From 500,000 Toman upwards, request a payout from your dashboard. Settlement takes up to 72 working hours." },
+      { q: "Can I shoot on a phone?", a: "Absolutely. Most Qaab sales are phone shots — authenticity beats gear every time." },
+      { q: "What is a brand mission?", a: "A brand posts a creative brief with a reward. You submit photos and, if picked, take the reward plus sales." },
+    ],
+    photo: {
+      buy: "Buy license", price: "Price", license: "License", standard: "Standard", extended: "Extended commercial",
+      standardD: "Social media, websites and digital content",
+      extendedD: "Unlimited commercial use, outdoor ads and packaging",
+      likes: "likes", sales: "sales", by: "by", similar: "Similar frames", download: "Download", tags: "Tags",
+      bought: "Purchase completed", owned: "You own this photo",
+    },
+    explore: {
+      title: "The market", sub: "Search thousands of Iranian frames",
+      all: "All", sort: "Sort", trending: "Trending", newest: "Newest",
+      priceLow: "Lowest price", priceHigh: "Highest price", popular: "Best selling",
+      empty: "No frame matched your filters", results: "frames",
+    },
+    missions: { open: "Open", closed: "Closed", reward: "Reward", deadline: "Deadline", submissions: "submissions", join: "Join mission", brief: "The brief", entries: "Entries", days: "days left" },
+    auth: {
+      loginT: "Welcome back", loginS: "Log in to continue",
+      signupT: "Join Qaab", signupS: "Creating an account takes less than a minute",
+      name: "Full name", email: "Email", password: "Password",
+      haveAccount: "Already a member?", noAccount: "New here?",
+      demo: "Use the demo account", terms: "By continuing I accept the terms of service and privacy policy.",
+      empty: "This field can't be empty",
+    },
+    dash: {
+      title: "Dashboard", hello: "Hi",
+      balance: "Wallet balance", photos: "My frames", sales: "Sales", likes: "Likes", revenue: "Total revenue",
+      withdraw: "Request payout", myPhotos: "My frames", purchases: "My purchases",
+      emptyPhotos: "You haven't uploaded a frame yet", emptyBuys: "No purchases yet",
+    },
+    upload: {
+      title: "Upload a new frame", sub: "Drag a photo here or pick one from your device",
+      pick: "Choose photo", name: "Title", nameFa: "Persian title", desc: "Description", category: "Category",
+      tags: "Tags (comma separated)", price: "Price (Toman)", mission: "Submit to mission", none: "No mission",
+      submit: "Publish to market", success: "Your frame is live",
+    },
+    footer: { rights: "All rights reserved", made: "Made with ❤️ in Iran", product: "Product", company: "Company", legal: "Legal", about: "About", contact: "Contact", privacy: "Privacy", terms: "Terms of service", help: "Help" },
+    common: { toman: "Toman", loading: "Loading…", more: "More", back: "Back", theme: "Theme", lang: "Language", menu: "Menu" },
+  },
+} as const;
+
+export type Dict = (typeof dict)["fa"];
+export const getDict = (l: string): Dict => (dict[l as Locale] ?? dict.fa) as Dict;
+export const isRtl = (l: string) => l !== "en";
