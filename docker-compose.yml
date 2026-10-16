@@ -5,18 +5,16 @@ services:
     environment:
       QAAB_DATA_DIR: /srv/data
       QAAB_MEDIA_DIR: /srv/media
-      SECRET_KEY: ${SECRET_KEY:-qaab-dev-secret-change-me}
-      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      # Empty SECRET_KEY in development = random key generated once in the data volume.
+      SECRET_KEY: ${SECRET_KEY:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3041}
+      APP_ENV: ${APP_ENV:-development}
+      QAAB_SEED_DEMO: ${QAAB_SEED_DEMO:-1}
     volumes:
       - qaab-data:/srv/data
       - qaab-media:/srv/media
     ports:
       - "8041:8000"
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/health')"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
     restart: unless-stopped
 
   web:
@@ -24,13 +22,15 @@ services:
       context: ./frontend
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8041}
+        NEXT_PUBLIC_DEMO: ${NEXT_PUBLIC_DEMO:-1}
     container_name: qaab-web
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8041}
     ports:
       - "3041:3000"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

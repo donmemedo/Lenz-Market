@@ -43,7 +43,12 @@
 
 * { border-color: rgb(var(--line)); }
 
-html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+/* Tracking and leading follow size (Apple UI typography): tight for display text, open for body. */
+h1, h2, .display { letter-spacing: -0.02em; line-height: 1.1; text-wrap: balance; }
+p { text-wrap: pretty; }
+:focus-visible { outline: 3px solid rgb(var(--brand) / .55); outline-offset: 2px; }
 
 body {
   background: rgb(var(--bg));
@@ -54,22 +59,24 @@ body {
   transition: background-color .45s ease, color .45s ease;
 }
 
-/* ---------- aurora backdrop ---------- */
+/* ---------- aurora backdrop ----------
+   Soft radial gradients instead of filter: blur(90px) on a full-viewport layer, which
+   forced a re-blur every animation frame. Only transform animates, on the compositor. */
 .aurora {
   position: fixed; inset: -20% -10% auto -10%; height: 90vh; z-index: -1;
-  pointer-events: none; filter: blur(90px); opacity: .55;
+  pointer-events: none; opacity: .55; contain: strict;
 }
 .dark .aurora { opacity: .42; }
 .aurora span {
-  position: absolute; border-radius: 999px; display: block;
+  position: absolute; border-radius: 999px; display: block; will-change: transform;
   animation: drift 22s ease-in-out infinite alternate;
 }
 .aurora span:nth-child(1) { width: 46vw; height: 46vw; left: 4%; top: 6%;
-  background: rgb(var(--brand) / .55); }
+  background: radial-gradient(closest-side, rgb(var(--brand) / .55), transparent); }
 .aurora span:nth-child(2) { width: 38vw; height: 38vw; right: 6%; top: 0%;
-  background: rgb(var(--brand-2) / .45); animation-delay: -6s; }
+  background: radial-gradient(closest-side, rgb(var(--brand-2) / .45), transparent); animation-delay: -6s; }
 .aurora span:nth-child(3) { width: 30vw; height: 30vw; left: 38%; top: 34%;
-  background: rgb(var(--accent) / .35); animation-delay: -12s; }
+  background: radial-gradient(closest-side, rgb(var(--accent) / .35), transparent); animation-delay: -12s; }
 @keyframes drift {
   from { transform: translate3d(0,0,0) scale(1); }
   to   { transform: translate3d(6%, 8%, 0) scale(1.18); }
@@ -94,8 +101,11 @@ body {
 }
 .gradient-bg { background: linear-gradient(100deg, rgb(var(--brand)), rgb(var(--brand-2))); }
 .ring-glow { box-shadow: 0 18px 60px -18px rgb(var(--brand) / .55); }
-.card-hover { transition: transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .45s ease; }
-.card-hover:hover { transform: translateY(-6px); box-shadow: 0 30px 70px -30px rgb(var(--shadow)); }
+.card-hover { transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease; }
+@media (hover: hover) {
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 30px 70px -30px rgb(var(--shadow)); }
+}
+.card-hover:active { transform: scale(.985); transition-duration: .08s; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -111,4 +121,15 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  .aurora span { animation: none; }
+}
+/* Solid surfaces for people who turn transparency off; stronger edges for increased contrast. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass { background: rgb(var(--bg-soft)); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .aurora, .grain::before { display: none; }
+}
+@media (prefers-contrast: more) {
+  :root { --line: 120 124 140; --ink-soft: 60 64 78; }
+  .dark { --line: 150 154 170; --ink-soft: 200 204 220; }
+  .glass { background: rgb(var(--bg-soft)); }
 }

@@ -5,14 +5,14 @@ import { useEffect, useState } from "react";
 import { useI18n } from "@/components/locale";
 import { Masonry, PhotoCard } from "@/components/photo-card";
 import { Reveal, Skeleton } from "@/components/ui";
-import { api, type Photo, type User } from "@/lib/api";
+import { api, type Photo, type PublicUser } from "@/lib/api";
 import { num } from "@/lib/format";
 
 export default function CreatorPage() {
   const { t, locale } = useI18n();
   const { id } = useParams<{ id: string }>();
-  const [data, setData] = useState<{ user: User; photos: Photo[] } | null>(null);
-  useEffect(() => { void api<{ user: User; photos: Photo[] }>(`/api/creators/${id}`).then(setData).catch(() => {}); }, [id]);
+  const [data, setData] = useState<{ user: PublicUser; photos: Photo[] } | null>(null);
+  useEffect(() => { void api<{ user: PublicUser; photos: Photo[] }>(`/api/creators/${id}`).then(setData).catch(() => {}); }, [id]);
 
   if (!data) return <div className="mx-auto max-w-7xl px-4 py-10"><Skeleton className="h-64 w-full" /></div>;
 

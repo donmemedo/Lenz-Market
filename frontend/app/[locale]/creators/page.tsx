@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/components/locale";
 import { Reveal, Skeleton } from "@/components/ui";
-import { api, type User } from "@/lib/api";
+import { api, type PublicUser } from "@/lib/api";
 
 export default function CreatorsPage() {
   const { t, locale } = useI18n();
-  const [creators, setCreators] = useState<User[] | null>(null);
-  useEffect(() => { void api<User[]>("/api/creators?limit=24").then(setCreators).catch(() => setCreators([])); }, []);
+  const [creators, setCreators] = useState<PublicUser[] | null>(null);
+  useEffect(() => { void api<PublicUser[]>("/api/creators?limit=24").then(setCreators).catch(() => setCreators([])); }, []);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">

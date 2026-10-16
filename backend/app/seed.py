@@ -1,10 +1,10 @@
 import random
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from sqlmodel import Session, select
 
 from .db import engine
-from .models import Mission, Photo, User
+from .models import Mission, Photo, User, now
 from .security import hash_password
 
 CREATORS = [
@@ -79,7 +79,7 @@ def seed() -> None:
         users = []
         for i, (name, email, city, bio) in enumerate(CREATORS):
             u = User(name=name, email=email, city=city, bio=bio,
-                     password_hash=hash_password("qaab1234"),
+                     password_hash="!",  # unusable: sample creators cannot be logged into
                      avatar=f"https://i.pravatar.cc/160?img={i + 11}",
                      balance=random.randint(2, 40) * 500_000)
             users.append(u)
@@ -99,7 +99,7 @@ def seed() -> None:
             m = Mission(brand=brand, title=t_en, title_fa=t_fa, brief=brief, brief_fa=brief_fa,
                         reward=reward, category=cat, cover=img(f"mission{i}", 1600, 900),
                         brand_logo=img(f"logo{i}", 200, 200),
-                        deadline=datetime.utcnow() + timedelta(days=5 + i * 6),
+                        deadline=now() + timedelta(days=5 + i * 6),
                         submissions=random.randint(40, 460))
             missions.append(m)
             s.add(m)
@@ -123,6 +123,6 @@ def seed() -> None:
                     likes=random.randint(12, 980), sales=random.randint(0, 64),
                     featured=n % 4 == 0,
                     mission_id=random.choice(missions).id if n % 5 == 0 else None,
-                    created_at=datetime.utcnow() - timedelta(days=random.randint(0, 120)),
+                    created_at=now() - timedelta(days=random.randint(0, 120)),
                 ))
         s.commit()

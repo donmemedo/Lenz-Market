@@ -1,20 +1,21 @@
 "use client";
 
-import { Check, Download, Heart, ShoppingBag, Tag } from "lucide-react";
+import { Check, Download, Heart, Loader2, ShoppingBag, Tag } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/components/locale";
 import { Masonry, PhotoCard } from "@/components/photo-card";
 import { useAuth } from "@/components/providers";
-import { Button, Reveal, Skeleton } from "@/components/ui";
-import { api, mediaUrl, type Photo } from "@/lib/api";
+import { Button, Notice, Reveal, Skeleton } from "@/components/ui";
+import { api, downloadUrl, mediaUrl, type Photo } from "@/lib/api";
 import { dateLabel, money, num } from "@/lib/format";
 
 export default function PhotoPage() {
   const { t, locale } = useI18n();
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
+  const router = useRouter();
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [similar, setSimilar] = useState<Photo[]>([]);
   const [license, setLicense] = useState<"standard" | "extended">("standard");
@@ -24,16 +25,17 @@ export default function PhotoPage() {
   useEffect(() => {
     void api<Photo>(`/api/photos/${id}`).then(async (p) => {
       setPhoto(p);
-      setSimilar(await api<Photo[]>(`/api/photos?category=${p.category}&limit=8`));
+      setSimilar(await api<Photo[]>(`/api/photos?category=${encodeURIComponent(p.category)}&limit=8`));
     }).catch(() => {});
   }, [id]);
 
   const buy = async () => {
-    if (!user) { window.location.href = `/${locale}/login`; return; }
+    if (!user) { router.push(`/${locale}/login`); return; }
     setStatus("busy"); setError("");
     try {
       await api(`/api/photos/${id}/buy?license=${license}`, { method: "POST" });
       setStatus("done");
+      void refresh(); // wallet balance changed
     } catch (e) { setStatus("error"); setError((e as Error).message); }
   };
 
@@ -48,7 +50,8 @@ export default function PhotoPage() {
         <Reveal>
           <div className="overflow-hidden rounded-[2rem] border border-line bg-surface">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={mediaUrl(photo.url)} alt={title} className="w-full object-cover" />
+            <img src={mediaUrl(photo.url)} alt={title} width={photo.width} height={photo.height} decoding="async"
+              className="h-auto w-full object-cover" style={{ aspectRatio: `${photo.width}/${photo.height}` }} />
           </div>
         </Reveal>
 
@@ -77,8 +80,8 @@ export default function PhotoPage() {
             <div className="mt-6 space-y-2">
               {([["standard", t.photo.standard, t.photo.standardD, photo.price],
                  ["extended", t.photo.extended, t.photo.extendedD, photo.price * 3]] as const).map(([key, label, desc, p]) => (
-                <button key={key} onClick={() => setLicense(key)}
-                  className={`w-full rounded-3xl border p-4 text-start transition ${license === key ? "border-brand bg-brand/5 ring-4 ring-brand/10" : "border-line bg-surface/60 hover:bg-surface"}`}>
+                <button key={key} type="button" onClick={() => setLicense(key)} aria-pressed={license === key}
+                  className={`w-full rounded-3xl border p-4 text-start transition active:scale-[.99] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/40 ${license === key ? "border-brand bg-brand/5 ring-4 ring-brand/10" : "border-line bg-surface/60 hover:bg-surface"}`}>
                   <span className="flex items-center justify-between gap-3">
                     <span className="font-bold">{label}</span>
                     <span className="font-black text-brand">{money(p, locale)} {t.common.toman}</span>
@@ -88,19 +91,21 @@ export default function PhotoPage() {
               ))}
             </div>
 
-            {status === "done" ? (
-              <div className="mt-5 flex items-center gap-3 rounded-3xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                <Check className="size-5" /> {t.photo.bought}
-                <a href={mediaUrl(photo.url)} target="_blank" rel="noreferrer" className="ms-auto inline-flex items-center gap-1 underline">
+            {status === "done" || photo.can_download ? (
+              <div role="status" className="mt-5 flex items-center gap-3 rounded-3xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm font-bold text-emerald-700 dark:text-emerald-400">
+                <Check className="size-5" aria-hidden /> {photo.author?.id === user?.id ? t.photo.owned : t.photo.bought}
+                {/* Original file: served only to the owner or a buyer, via the session cookie. */}
+                <a href={downloadUrl(photo.id)} download className="ms-auto inline-flex min-h-11 items-center gap-1 underline">
                   <Download className="size-4" /> {t.photo.download}
                 </a>
               </div>
             ) : (
               <Button size="lg" className="mt-5 w-full" onClick={buy} disabled={status === "busy"}>
-                <ShoppingBag className="size-4" /> {t.photo.buy} — {money(price, locale)} {t.common.toman}
+                {status === "busy" ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <ShoppingBag className="size-4" aria-hidden />}
+                {t.photo.buy} — {money(price, locale)} {t.common.toman}
               </Button>
             )}
-            {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+            {error && <div className="mt-3"><Notice>{error}</Notice></div>}
 
             {photo.tags.length > 0 && (
               <div className="mt-6">

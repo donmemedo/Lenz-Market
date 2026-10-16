@@ -30,7 +30,7 @@ function ExploreInner() {
 
   const setParam = (key: string, value: string) => {
     const next = new URLSearchParams(search.toString());
-    value ? next.set(key, value) : next.delete(key);
+    if (value) next.set(key, value); else next.delete(key);
     router.push(`/${params.locale}/explore?${next.toString()}`);
   };
 

@@ -44,7 +44,7 @@ export const dict = {
       standardD: "استفاده در شبکه‌های اجتماعی، وب‌سایت و محتوای دیجیتال",
       extendedD: "استفاده نامحدود تجاری، تبلیغات محیطی و بسته‌بندی",
       likes: "پسند", sales: "فروش", by: "عکاس", similar: "قاب‌های مشابه", download: "بارگیری", tags: "برچسب‌ها",
-      bought: "خرید با موفقیت انجام شد", owned: "این عکس متعلق به شماست",
+      bought: "خرید با موفقیت انجام شد", owned: "این عکس متعلق به شماست", like: "پسندیدن",
     },
     explore: {
       title: "بازار عکس", sub: "میان هزاران قاب ایرانی بگرد",
@@ -59,7 +59,7 @@ export const dict = {
       name: "نام و نام خانوادگی", email: "رایانامه (ایمیل)", password: "رمز عبور",
       haveAccount: "حساب کاربری دارید؟", noAccount: "هنوز عضو نشده‌اید؟",
       demo: "ورود با حساب نمایشی", terms: "با ادامه، شرایط استفاده و حریم خصوصی را می‌پذیرم.",
-      empty: "اینجا نباید خالی باشد",
+      empty: "اینجا نباید خالی باشد", passwordHint: "دست‌کم ۸ نویسه",
     },
     dash: {
       title: "پیش‌خوان", hello: "سلام",
@@ -71,10 +71,10 @@ export const dict = {
       title: "بارگذاری قاب تازه", sub: "عکس را بکشید و اینجا رها کنید یا از دستگاه انتخاب کنید",
       pick: "انتخاب عکس", name: "عنوان", nameFa: "عنوان فارسی", desc: "توضیح", category: "دسته‌بندی",
       tags: "برچسب‌ها (با ویرگول جدا کنید)", price: "قیمت (تومان)", mission: "ارسال برای مأموریت", none: "بدون مأموریت",
-      submit: "انتشار در بازار", success: "قاب شما منتشر شد",
+      submit: "انتشار در بازار", success: "قاب شما منتشر شد", fileHint: "فقط JPEG، PNG یا WebP تا ۱۲ مگابایت", view: "دیدن قاب",
     },
     footer: { rights: "همه حقوق محفوظ است", made: "ساخته‌شده با ❤️ در ایران", product: "محصول", company: "شرکت", legal: "قوانین", about: "درباره ما", contact: "تماس با ما", privacy: "حریم خصوصی", terms: "شرایط استفاده", help: "راهنما" },
-    common: { toman: "تومان", loading: "در حال بارگذاری…", more: "بیشتر", back: "بازگشت", theme: "پوسته", lang: "زبان", menu: "فهرست" },
+    common: { toman: "تومان", loading: "در حال بارگذاری…", more: "بیشتر", back: "بازگشت", theme: "پوسته", lang: "زبان", menu: "فهرست", close: "بستن" },
   },
   en: {
     dir: "ltr",
@@ -117,7 +117,7 @@ export const dict = {
       standardD: "Social media, websites and digital content",
       extendedD: "Unlimited commercial use, outdoor ads and packaging",
       likes: "likes", sales: "sales", by: "by", similar: "Similar frames", download: "Download", tags: "Tags",
-      bought: "Purchase completed", owned: "You own this photo",
+      bought: "Purchase completed", owned: "You own this photo", like: "Like",
     },
     explore: {
       title: "The market", sub: "Search thousands of Iranian frames",
@@ -132,7 +132,7 @@ export const dict = {
       name: "Full name", email: "Email", password: "Password",
       haveAccount: "Already a member?", noAccount: "New here?",
       demo: "Use the demo account", terms: "By continuing I accept the terms of service and privacy policy.",
-      empty: "This field can't be empty",
+      empty: "This field can't be empty", passwordHint: "At least 8 characters",
     },
     dash: {
       title: "Dashboard", hello: "Hi",
@@ -144,10 +144,10 @@ export const dict = {
       title: "Upload a new frame", sub: "Drag a photo here or pick one from your device",
       pick: "Choose photo", name: "Title", nameFa: "Persian title", desc: "Description", category: "Category",
       tags: "Tags (comma separated)", price: "Price (Toman)", mission: "Submit to mission", none: "No mission",
-      submit: "Publish to market", success: "Your frame is live",
+      submit: "Publish to market", success: "Your frame is live", fileHint: "JPEG, PNG or WebP, up to 12 MB", view: "View frame",
     },
     footer: { rights: "All rights reserved", made: "Made with ❤️ in Iran", product: "Product", company: "Company", legal: "Legal", about: "About", contact: "Contact", privacy: "Privacy", terms: "Terms of service", help: "Help" },
-    common: { toman: "Toman", loading: "Loading…", more: "More", back: "Back", theme: "Theme", lang: "Language", menu: "Menu" },
+    common: { toman: "Toman", loading: "Loading…", more: "More", back: "Back", theme: "Theme", lang: "Language", menu: "Menu", close: "Close" },
   },
 } as const;
 

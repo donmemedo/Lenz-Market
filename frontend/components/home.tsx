@@ -8,7 +8,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { api, mediaUrl, type Category, type Mission, type Photo, type User } from "@/lib/api";
+import { api, mediaUrl, type Category, type Mission, type Photo, type PublicUser } from "@/lib/api";
 import { compact, money, num } from "@/lib/format";
 import { useI18n } from "./locale";
 import { MissionCard } from "./mission-card";
@@ -30,7 +30,7 @@ export function Home({ locale }: { locale: string }) {
   const [photos, setPhotos] = useState<Photo[] | null>(null);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [cats, setCats] = useState<Category[]>([]);
-  const [creators, setCreators] = useState<User[]>([]);
+  const [creators, setCreators] = useState<PublicUser[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [q, setQ] = useState("");
   const [faq, setFaq] = useState<number | null>(0);
@@ -46,7 +46,7 @@ export function Home({ locale }: { locale: string }) {
         api<Photo[]>("/api/photos?limit=12&sort=trending"),
         api<Mission[]>("/api/missions?limit=3"),
         api<Category[]>("/api/categories"),
-        api<User[]>("/api/creators?limit=6"),
+        api<PublicUser[]>("/api/creators?limit=6"),
         api<Stats>("/api/stats"),
       ]);
       setPhotos(p); setMissions(m); setCats(c); setCreators(cr); setStats(s);
@@ -56,9 +56,9 @@ export function Home({ locale }: { locale: string }) {
   const Arrow = rtl ? ArrowLeft : ArrowRight;
   const statItems = stats
     ? [
-        { v: compact(stats.photos * 380, locale), l: t.stats.photos },
-        { v: compact(stats.creators * 1400, locale), l: t.stats.creators },
-        { v: num(stats.missions * 14, locale), l: t.stats.missions },
+        { v: compact(stats.photos, locale), l: t.stats.photos },
+        { v: compact(stats.creators, locale), l: t.stats.creators },
+        { v: num(stats.missions, locale), l: t.stats.missions },
         { v: `${compact(stats.paid_out, locale)} ${t.common.toman}`, l: t.stats.paid },
       ]
     : [];

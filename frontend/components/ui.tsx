@@ -1,15 +1,15 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { motion, type Transition, type Variants } from "framer-motion";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+/** Critically damped spring (no overshoot): Apple's default for UI that wasn't flicked. */
+export const settle: Transition = { type: "spring", bounce: 0, duration: 0.5 };
+
 export const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 26 },
-  show: (i = 0) => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.07, duration: 0.7, ease: [0.22, 1, 0.36, 1] },
-  }),
+  hidden: { opacity: 0, y: 18 },
+  show: (i = 0) => ({ opacity: 1, y: 0, transition: { ...settle, delay: Math.min(i, 6) * 0.05 } }),
 };
 
 export function Reveal({ children, i = 0, className = "" }: { children: ReactNode; i?: number; className?: string }) {
@@ -38,7 +38,7 @@ export function SectionHead({ eyebrow, title, sub, action }: { eyebrow?: string;
               {eyebrow}
             </span>
           )}
-          <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">{title}</h2>
+          <h2 className="display text-3xl font-extrabold sm:text-4xl">{title}</h2>
           {sub && <p className="mt-2 max-w-xl text-muted">{sub}</p>}
         </div>
       </Reveal>
@@ -47,26 +47,35 @@ export function SectionHead({ eyebrow, title, sub, action }: { eyebrow?: string;
   );
 }
 
+// Feedback on press, not release: the scale-down starts on pointer-down and is near-instant.
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-2xl font-semibold transition-all duration-300 active:scale-[.97] disabled:opacity-50 disabled:pointer-events-none";
+  "inline-flex select-none items-center justify-center gap-2 rounded-2xl font-semibold transition-[transform,filter,background-color,box-shadow] duration-200 ease-out active:scale-[.97] active:duration-75 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/40 disabled:opacity-50 disabled:pointer-events-none";
 const variants = {
-  primary: "gradient-bg text-white ring-glow hover:brightness-110",
+  primary: "gradient-bg text-white ring-glow hover:brightness-110 active:brightness-95",
   ghost: "border border-line bg-surface/60 backdrop-blur hover:bg-surface",
   soft: "bg-ink/5 dark:bg-white/10 hover:bg-ink/10 dark:hover:bg-white/15",
 };
-const sizes = { sm: "h-9 px-4 text-sm", md: "h-11 px-5 text-sm", lg: "h-13 px-7 text-base py-3.5" };
+// Every size reaches the 44px touch target on coarse pointers.
+const sizes = { sm: "h-9 px-4 text-sm pointer-coarse:h-11", md: "h-11 px-5 text-sm", lg: "h-13 px-7 text-base py-3.5" };
 
 type BtnProps = {
   children: ReactNode; href?: string; variant?: keyof typeof variants; size?: keyof typeof sizes;
   className?: string; onClick?: () => void; type?: "button" | "submit"; disabled?: boolean;
+  "aria-label"?: string;
 };
 
-export function Button({ children, href, variant = "primary", size = "md", className = "", ...rest }: BtnProps) {
+export function Button({ children, href, variant = "primary", size = "md", className = "", type = "button", ...rest }: BtnProps) {
   const cls = `${base} ${variants[variant]} ${sizes[size]} ${className}`;
   if (href) return <Link href={href} className={cls}>{children}</Link>;
-  return <button className={cls} {...rest}>{children}</button>;
+  return <button type={type} className={cls} {...rest}>{children}</button>;
 }
 
 export function Skeleton({ className = "" }: { className?: string }) {
-  return <div className={`shimmer rounded-2xl ${className}`} />;
+  return <div className={`shimmer rounded-2xl ${className}`} aria-hidden />;
+}
+
+/** Inline, announced feedback for the four states: status, completion, warning, error. */
+export function Notice({ tone = "error", children }: { tone?: "error" | "success"; children: ReactNode }) {
+  const color = tone === "error" ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+  return <p role={tone === "error" ? "alert" : "status"} className={`rounded-2xl p-3 text-sm ${color}`}>{children}</p>;
 }

@@ -20,7 +20,7 @@ export function MissionCard({ mission, i = 0 }: { mission: Mission; i?: number }
         className="card-hover group flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-surface">
         <div className="relative h-44 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={mediaUrl(mission.cover)} alt={mission.title} loading="lazy"
+          <img src={mediaUrl(mission.cover)} alt={mission.title} loading="lazy" decoding="async"
             className="size-full object-cover transition-transform duration-700 group-hover:scale-110" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           <span className={`absolute top-3 rounded-full px-3 py-1 text-[11px] font-bold ltr:right-3 rtl:left-3 ${mission.is_open ? "bg-emerald-500 text-white" : "bg-black/60 text-white"}`}>

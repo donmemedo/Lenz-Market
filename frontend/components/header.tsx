@@ -8,18 +8,19 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useI18n } from "./locale";
 import { useAuth } from "./providers";
-import { Button } from "./ui";
+import { Button, settle } from "./ui";
 
-function ThemeToggle() {
+function ThemeToggle({ label }: { label: string }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const dark = (mounted ? resolvedTheme ?? theme : "dark") === "dark";
   return (
     <button
-      aria-label="theme"
+      type="button"
+      aria-label={label}
       onClick={() => setTheme(dark ? "light" : "dark")}
-      className="relative grid size-10 place-items-center rounded-2xl border border-line bg-surface/60 backdrop-blur transition hover:bg-surface"
+      className="relative grid size-10 place-items-center rounded-2xl border border-line bg-surface/60 backdrop-blur transition hover:bg-surface active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/40 pointer-coarse:size-11"
     >
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
@@ -27,7 +28,7 @@ function ThemeToggle() {
           initial={{ opacity: 0, rotate: -90, scale: 0.6 }}
           animate={{ opacity: 1, rotate: 0, scale: 1 }}
           exit={{ opacity: 0, rotate: 90, scale: 0.6 }}
-          transition={{ duration: 0.25 }}
+          transition={settle}
           className="absolute"
         >
           {dark ? <Moon className="size-[18px]" /> : <Sun className="size-[18px]" />}
@@ -44,7 +45,8 @@ function LangSwitch({ locale }: { locale: string }) {
   return (
     <Link
       href={href}
-      className="grid h-10 place-items-center rounded-2xl border border-line bg-surface/60 px-3 text-xs font-bold backdrop-blur transition hover:bg-surface"
+      hrefLang={other}
+      className="grid h-10 place-items-center rounded-2xl border border-line bg-surface/60 px-3 text-xs font-bold backdrop-blur transition hover:bg-surface active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/40 pointer-coarse:h-11"
     >
       {other === "fa" ? "فا" : "EN"}
     </Link>
@@ -65,6 +67,13 @@ export function Header({ locale }: { locale: string }) {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   const links = [
     { href: `/${locale}/explore`, label: t.nav.explore },
@@ -107,7 +116,7 @@ export function Header({ locale }: { locale: string }) {
           </form>
 
           <div className="ms-auto flex items-center gap-2">
-            <ThemeToggle />
+            <ThemeToggle label={t.common.theme} />
             <LangSwitch locale={locale} />
             {user ? (
               <div className="hidden items-center gap-2 sm:flex">
@@ -125,8 +134,8 @@ export function Header({ locale }: { locale: string }) {
                 <Button href={`/${locale}/login?mode=signup`} size="sm">{t.cta.signup}</Button>
               </div>
             )}
-            <button onClick={() => setOpen(true)} aria-label={t.common.menu}
-              className="grid size-10 place-items-center rounded-2xl border border-line bg-surface/60 lg:hidden">
+            <button type="button" onClick={() => setOpen(true)} aria-label={t.common.menu} aria-expanded={open}
+              className="grid size-10 place-items-center rounded-2xl border border-line bg-surface/60 active:scale-95 lg:hidden pointer-coarse:size-11">
               <Menu className="size-[18px]" />
             </button>
           </div>
@@ -139,13 +148,15 @@ export function Header({ locale }: { locale: string }) {
             className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm lg:hidden" onClick={() => setOpen(false)}>
             <motion.div
               initial={{ y: "-100%" }} animate={{ y: 0 }} exit={{ y: "-100%" }}
-              transition={{ type: "spring", damping: 26, stiffness: 240 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.4 }}
               onClick={(e) => e.stopPropagation()}
+              role="dialog" aria-modal="true" aria-label={t.common.menu}
               className="glass m-3 rounded-3xl p-5"
             >
               <div className="mb-5 flex items-center justify-between">
                 <span className="text-lg font-extrabold">{t.brand}</span>
-                <button onClick={() => setOpen(false)} className="grid size-10 place-items-center rounded-2xl border border-line">
+                <button type="button" autoFocus onClick={() => setOpen(false)} aria-label={t.common.close}
+                  className="grid size-11 place-items-center rounded-2xl border border-line active:scale-95">
                   <X className="size-[18px]" />
                 </button>
               </div>
@@ -169,7 +180,7 @@ export function Header({ locale }: { locale: string }) {
                     <Button href={`/${locale}/dashboard`} variant="ghost" size="lg" className="w-full">
                       <LayoutDashboard className="size-4" />{t.nav.dashboard}
                     </Button>
-                    <Button variant="soft" size="lg" className="w-full" onClick={() => { logout(); setOpen(false); }}>
+                    <Button variant="soft" size="lg" className="w-full" onClick={() => { void logout(); setOpen(false); }}>
                       <LogOut className="size-4" />{t.cta.logout}
                     </Button>
                   </>

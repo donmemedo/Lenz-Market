@@ -53,7 +53,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex gap-2 sm:ms-auto">
             <Button href={`/${loc}/upload`}><Upload className="size-4" />{t.nav.upload}</Button>
-            <Button variant="ghost" onClick={() => { logout(); router.push(`/${loc}`); }}>
+            <Button variant="ghost" onClick={async () => { await logout(); router.push(`/${loc}`); }}>
               <LogOut className="size-4" />{t.cta.logout}
             </Button>
           </div>

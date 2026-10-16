@@ -6,14 +6,18 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useI18n } from "@/components/locale";
 import { useAuth } from "@/components/providers";
-import { Button } from "@/components/ui";
+import { Button, Notice } from "@/components/ui";
 
-function Field({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+// The shared demo login exists only where the API seeds it (never in production builds).
+const DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
+
+function Field({ label, hint, ...props }: { label: string; hint?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium text-muted">{label}</span>
-      <input {...props}
-        className="h-12 w-full rounded-2xl border border-line bg-surface/70 px-4 text-sm outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/15" />
+      <input {...props} aria-describedby={hint ? `${props.name}-hint` : undefined}
+        className="h-12 w-full rounded-2xl border border-line bg-surface/70 px-4 text-sm outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/15 user-invalid:border-red-500" />
+      {hint && <span id={`${props.name}-hint`} className="mt-1.5 block text-xs text-muted">{hint}</span>}
     </label>
   );
 }
@@ -70,28 +74,33 @@ function LoginInner() {
 
         <form onSubmit={submit} className="mt-7 space-y-4">
           {signup && (
-            <Field label={t.auth.name} value={form.name} required
+            <Field label={t.auth.name} name="name" autoComplete="name" maxLength={80} value={form.name} required
               onChange={(e) => setForm({ ...form, name: e.target.value })} />
           )}
-          <Field label={t.auth.email} type="email" value={form.email} required dir="ltr"
+          <Field label={t.auth.email} name="email" type="email" autoComplete="email" maxLength={254} value={form.email} required dir="ltr"
             onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          <Field label={t.auth.password} type="password" value={form.password} required minLength={6} dir="ltr"
+          <Field label={t.auth.password} name="password" type="password" value={form.password} required dir="ltr"
+            minLength={signup ? 8 : 1} maxLength={128} hint={signup ? t.auth.passwordHint : undefined}
+            autoComplete={signup ? "new-password" : "current-password"}
             onChange={(e) => setForm({ ...form, password: e.target.value })} />
 
-          {error && <p className="rounded-2xl bg-red-500/10 p-3 text-sm text-red-500">{error}</p>}
+          {error && <Notice>{error}</Notice>}
 
           <Button type="submit" size="lg" className="w-full" disabled={busy}>
             {busy && <Loader2 className="size-4 animate-spin" />}
             {signup ? t.cta.signup : t.cta.login}
           </Button>
-          <Button type="button" variant="ghost" size="lg" className="w-full" onClick={demo} disabled={busy}>
-            {t.auth.demo}
-          </Button>
+          {DEMO && (
+            <Button type="button" variant="ghost" size="lg" className="w-full" onClick={demo} disabled={busy}>
+              {t.auth.demo}
+            </Button>
+          )}
         </form>
 
         <p className="mt-6 text-center text-sm text-muted">
           {signup ? t.auth.haveAccount : t.auth.noAccount}{" "}
-          <button onClick={() => setMode(signup ? "login" : "signup")} className="font-bold text-brand hover:underline">
+          <button type="button" onClick={() => { setMode(signup ? "login" : "signup"); setError(""); }}
+            className="font-bold text-brand hover:underline focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/40 rounded-lg">
             {signup ? t.cta.login : t.cta.signup}
           </button>
         </p>

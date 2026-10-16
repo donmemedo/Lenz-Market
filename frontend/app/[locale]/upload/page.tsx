@@ -5,9 +5,11 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/locale";
 import { useAuth } from "@/components/providers";
-import { Button, Reveal } from "@/components/ui";
-import { API, api, mediaUrl, type Category, type Mission, type Photo } from "@/lib/api";
-import { getToken } from "@/lib/api";
+import { Button, Notice, Reveal } from "@/components/ui";
+import { api, mediaUrl, type Category, type Mission, type Photo, type Upload } from "@/lib/api";
+
+const TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_BYTES = 12 * 1024 * 1024;
 
 function UploadInner() {
   const { t, locale } = useI18n();
@@ -35,18 +37,19 @@ function UploadInner() {
     void api<Mission[]>("/api/missions?limit=20").then(setMissions).catch(() => {});
   }, []);
 
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
   const pick = async (file?: File) => {
     if (!file) return;
+    setError(""); setUrl("");
+    // Validate inline before spending the upload; the API re-checks the actual bytes.
+    if (!TYPES.includes(file.type) || file.size > MAX_BYTES) { setError(t.upload.fileHint); return; }
     setPreview(URL.createObjectURL(file));
-    setBusy(true); setError("");
+    setBusy(true);
     try {
       const body = new FormData();
       body.append("file", file);
-      const res = await fetch(`${API}/api/upload`, {
-        method: "POST", body, headers: { Authorization: `Bearer ${getToken()}` },
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      setUrl(((await res.json()) as { url: string }).url);
+      setUrl((await api<Upload>("/api/upload", { method: "POST", body })).url);
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   };
 
@@ -60,7 +63,7 @@ function UploadInner() {
         body: JSON.stringify({
           ...form,
           price: Number(form.price),
-          tags: form.tags.split(",").map((s) => s.trim()).filter(Boolean),
+          tags: form.tags.split(/[,،]/).map((s) => s.trim()).filter(Boolean).slice(0, 15),
           mission_id: form.mission_id ? Number(form.mission_id) : null,
           url,
         }),
@@ -82,7 +85,7 @@ function UploadInner() {
             <img src={mediaUrl(done.url)} alt="" className="max-h-72 w-full object-cover" />
           </div>
           <div className="mt-6 flex justify-center gap-2">
-            <Button href={`/${loc}/photo/${done.id}`}>{t.photo.buy.split(" ")[0]} →</Button>
+            <Button href={`/${loc}/photo/${done.id}`}>{t.upload.view}</Button>
             <Button href={`/${loc}/dashboard`} variant="ghost">{t.nav.dashboard}</Button>
           </div>
         </div>
@@ -113,35 +116,36 @@ function UploadInner() {
                 </span>
                 <p className="mt-4 font-bold">{t.upload.pick}</p>
                 <p className="mt-1 text-sm text-muted">{t.upload.sub}</p>
+                <p className="mt-1 text-xs text-muted">{t.upload.fileHint}</p>
               </div>
             )}
           </button>
-          <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => pick(e.target.files?.[0])} />
+          <input ref={fileRef} type="file" accept={TYPES.join(",")} hidden onChange={(e) => pick(e.target.files?.[0])} />
         </Reveal>
 
         <Reveal i={1}>
           <div className="space-y-4">
-            <input className={input} placeholder={t.upload.name} required value={form.title}
+            <input className={input} aria-label={t.upload.name} placeholder={t.upload.name} required maxLength={120} value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })} />
-            <input className={input} placeholder={t.upload.nameFa} value={form.title_fa}
+            <input className={input} aria-label={t.upload.nameFa} placeholder={t.upload.nameFa} maxLength={120} value={form.title_fa}
               onChange={(e) => setForm({ ...form, title_fa: e.target.value })} />
-            <textarea className={`${input} h-28 py-3`} placeholder={t.upload.desc} value={form.description}
+            <textarea className={`${input} h-28 py-3`} aria-label={t.upload.desc} placeholder={t.upload.desc} maxLength={2000} value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })} />
             <div className="grid gap-4 sm:grid-cols-2">
-              <select className={input} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+              <select className={input} aria-label={t.upload.category} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
                 {cats.map((c) => <option key={c.slug} value={c.slug}>{locale === "fa" ? c.fa : c.en}</option>)}
               </select>
-              <input className={input} type="number" min={10000} step={10000} placeholder={t.upload.price}
+              <input className={input} type="number" inputMode="numeric" min={10000} max={500000000} step={10000} aria-label={t.upload.price} placeholder={t.upload.price}
                 value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
             </div>
-            <input className={input} placeholder={t.upload.tags} value={form.tags}
+            <input className={input} aria-label={t.upload.tags} placeholder={t.upload.tags} value={form.tags}
               onChange={(e) => setForm({ ...form, tags: e.target.value })} />
-            <select className={input} value={form.mission_id} onChange={(e) => setForm({ ...form, mission_id: e.target.value })}>
+            <select className={input} aria-label={t.upload.mission} value={form.mission_id} onChange={(e) => setForm({ ...form, mission_id: e.target.value })}>
               <option value="">{t.upload.none}</option>
               {missions.map((m) => <option key={m.id} value={m.id}>{locale === "fa" ? m.title_fa : m.title} — {m.brand}</option>)}
             </select>
 
-            {error && <p className="rounded-2xl bg-red-500/10 p-3 text-sm text-red-500">{error}</p>}
+            {error && <Notice>{error}</Notice>}
 
             <Button type="submit" size="lg" className="w-full" disabled={busy || !url}>
               {busy && <Loader2 className="size-4 animate-spin" />}{t.upload.submit}
