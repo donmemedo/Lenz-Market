@@ -10,3 +10,11 @@ backend/media/
 
 docs
 .idea
+# nested frontend repo history (pre-merge backup)
+.frontend-git-backup/
+frontend/node_modules/
+frontend/.next/
+*.tsbuildinfo
+graphify-out/cache/
+graphify-out/20[0-9][0-9]-*/
+graphify-out/.graphify_*

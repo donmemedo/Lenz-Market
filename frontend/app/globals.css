@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: 250 250 252;
+  --bg-soft: 255 255 255;
+  --ink: 15 16 24;
+  --ink-soft: 92 96 112;
+  --line: 226 228 238;
+  --brand: 109 63 255;
+  --brand-2: 0 197 224;
+  --accent: 255 138 76;
+  --glass: 255 255 255 / 0.62;
+  --shadow: 18 16 40 / 0.10;
+}
+
+.dark {
+  --bg: 8 8 14;
+  --bg-soft: 17 17 27;
+  --ink: 240 241 248;
+  --ink-soft: 156 160 180;
+  --line: 40 41 58;
+  --brand: 150 110 255;
+  --brand-2: 60 228 250;
+  --accent: 255 160 96;
+  --glass: 20 20 32 / 0.58;
+  --shadow: 0 0 0 / 0.45;
+}
+
+@theme inline {
+  --color-bg: rgb(var(--bg));
+  --color-surface: rgb(var(--bg-soft));
+  --color-ink: rgb(var(--ink));
+  --color-muted: rgb(var(--ink-soft));
+  --color-line: rgb(var(--line));
+  --color-brand: rgb(var(--brand));
+  --color-brand2: rgb(var(--brand-2));
+  --color-accent: rgb(var(--accent));
+  --font-sans: "Vazirmatn", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --radius-xl2: 1.75rem;
+}
+
+/* In the base layer so Tailwind utilities (border-red-500, leading-*, tracking-*) still win. */
+@layer base {
+  *, ::before, ::after { border-color: rgb(var(--line)); }
+  /* Tracking and leading follow size (Apple UI typography): tight for display text, open for body. */
+  h1, h2, .display { line-height: 1.3; text-wrap: balance; }
+  /* Latin display text tightens; Persian is a joined script, so it keeps natural spacing and taller leading. */
+  :lang(en) :is(h1, h2, .display) { letter-spacing: -0.02em; line-height: 1.1; }
+  p { text-wrap: pretty; }
+  :focus-visible { outline: 3px solid rgb(var(--brand) / .55); outline-offset: 2px; }
+}
+
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--ink));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  transition: background-color .45s ease, color .45s ease;
+}
+
+/* ---------- aurora backdrop ----------
+   Soft radial gradients instead of filter: blur(90px) on a full-viewport layer, which
+   forced a re-blur every animation frame. Only transform animates, on the compositor. */
+.aurora {
+  position: fixed; inset: -20% -10% auto -10%; height: 90vh; z-index: -1;
+  pointer-events: none; opacity: .55; contain: strict;
+}
+.dark .aurora { opacity: .42; }
+.aurora span {
+  position: absolute; border-radius: 999px; display: block; will-change: transform;
+  animation: drift 22s ease-in-out 2 alternate; /* drifts out and back once, then rests: no endless GPU work */
+}
+.aurora span:nth-child(1) { width: 46vw; height: 46vw; left: 4%; top: 6%;
+  background: radial-gradient(closest-side, rgb(var(--brand) / .55), transparent); }
+.aurora span:nth-child(2) { width: 38vw; height: 38vw; right: 6%; top: 0%;
+  background: radial-gradient(closest-side, rgb(var(--brand-2) / .45), transparent); animation-delay: -6s; }
+.aurora span:nth-child(3) { width: 30vw; height: 30vw; left: 38%; top: 34%;
+  background: radial-gradient(closest-side, rgb(var(--accent) / .35), transparent); animation-delay: -12s; }
+@keyframes drift {
+  from { transform: translate3d(0,0,0) scale(1); }
+  to   { transform: translate3d(6%, 8%, 0) scale(1.18); }
+}
+
+.grain::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .5;
+  background-image: radial-gradient(rgb(var(--ink) / .07) 1px, transparent 1px);
+  background-size: 22px 22px; mask-image: radial-gradient(ellipse at 50% 0%, #000 30%, transparent 75%);
+}
+
+/* ---------- utilities ---------- */
+.glass {
+  background: rgb(var(--glass));
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgb(var(--line) / .9);
+}
+.gradient-text {
+  background: linear-gradient(100deg, rgb(var(--brand)), rgb(var(--brand-2)) 55%, rgb(var(--accent)));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.gradient-bg { background: linear-gradient(100deg, rgb(var(--brand)), rgb(var(--brand-2))); }
+.ring-glow { box-shadow: 0 18px 60px -18px rgb(var(--brand) / .55); }
+.card-hover { transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease; }
+@media (hover: hover) {
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 30px 70px -30px rgb(var(--shadow)); }
+}
+.card-hover:active { transform: scale(.985); transition-duration: .08s; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+::selection { background: rgb(var(--brand) / .28); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgb(var(--ink) / .18); border-radius: 99px; }
+
+.shimmer {
+  background: linear-gradient(90deg, rgb(var(--line) / .5) 25%, rgb(var(--line) / .9) 37%, rgb(var(--line) / .5) 63%);
+  background-size: 400% 100%; animation: shimmer 1.4s ease infinite;
+}
+@keyframes shimmer { from { background-position: 100% 0 } to { background-position: 0 0 } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important; animation-iteration-count: 1 !important;  /* no 0.01 ms flicker loops */
+    transition-duration: .01ms !important; scroll-behavior: auto !important;
+  }
+  .aurora span { animation: none; }
+}
+/* Solid surfaces for people who turn transparency off; stronger edges for increased contrast. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass { background: rgb(var(--bg-soft)); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .aurora, .grain::before { display: none; }
+}
+@media (prefers-contrast: more) {
+  :root { --line: 120 124 140; --ink-soft: 60 64 78; }
+  .dark { --line: 150 154 170; --ink-soft: 200 204 220; }
+  .glass { background: rgb(var(--bg-soft)); }
+}

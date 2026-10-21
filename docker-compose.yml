@@ -5,18 +5,17 @@ services:
     environment:
       QAAB_DATA_DIR: /srv/data
       QAAB_MEDIA_DIR: /srv/media
-      SECRET_KEY: ${SECRET_KEY:-qaab-dev-secret-change-me}
-      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      APP_ENV: ${APP_ENV:-development}
+      # Passed through from .env / the shell; app/config.py holds the defaults.
+      SECRET_KEY:            # unset in development = random key kept in the data volume
+      CORS_ORIGINS:
+      QAAB_SEED_DEMO:        # always off when APP_ENV=production
+      FORWARDED_ALLOW_IPS:   # your reverse proxy, so per-IP rate limits see real clients
     volumes:
       - qaab-data:/srv/data
       - qaab-media:/srv/media
     ports:
       - "8041:8000"
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/health')"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
     restart: unless-stopped
 
   web:
@@ -25,12 +24,11 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8041}
     container_name: qaab-web
-    environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8041}
     ports:
       - "3041:3000"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
