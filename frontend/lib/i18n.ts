@@ -44,7 +44,7 @@ export const dict = {
       standardD: "استفاده در شبکه‌های اجتماعی، وب‌سایت و محتوای دیجیتال",
       extendedD: "استفاده نامحدود تجاری، تبلیغات محیطی و بسته‌بندی",
       likes: "پسند", sales: "فروش", by: "عکاس", similar: "قاب‌های مشابه", download: "بارگیری", tags: "برچسب‌ها",
-      bought: "خرید با موفقیت انجام شد", owned: "این عکس متعلق به شماست", like: "پسندیدن",
+      bought: "خرید با موفقیت انجام شد", owned: "این عکس متعلق به شماست", like: "پسندیدن", wallet: "موجودی کیف پول", short: "موجودی کیف پول برای این مجوز کافی نیست. کیف پول از فروش عکس‌های خودتان شارژ می‌شود.", confirm: "تأیید و پرداخت", cancel: "انصراف", payFrom: "پرداخت از کیف پول", after: "موجودی پس از خرید",
     },
     explore: {
       title: "بازار عکس", sub: "میان هزاران قاب ایرانی بگرد",
@@ -52,11 +52,11 @@ export const dict = {
       priceLow: "ارزان‌ترین", priceHigh: "گران‌ترین", popular: "پرفروش‌ترین",
       empty: "قابی با این مشخصات پیدا نشد", results: "قاب",
     },
-    missions: { open: "باز", closed: "بسته‌شده", reward: "جایزه", deadline: "مهلت", submissions: "عکس ارسالی", join: "شرکت در مأموریت", brief: "خلاصه مأموریت", entries: "ارسال‌های این مأموریت", days: "روز باقی‌مانده" },
+    missions: { open: "باز", closed: "بسته‌شده", reward: "جایزه", deadline: "مهلت", submissions: "عکس ارسالی", join: "شرکت در مأموریت", brief: "خلاصه مأموریت", entries: "ارسال‌های این مأموریت", days: "روز باقی‌مانده", ended: "مهلت تمام شده" },
     auth: {
       loginT: "خوش آمدید", loginS: "برای ادامه وارد حساب کاربری شوید",
       signupT: "به قاب بپیوندید", signupS: "ساخت حساب کاربری کمتر از یک دقیقه طول می‌کشد",
-      name: "نام و نام خانوادگی", email: "رایانامه (ایمیل)", password: "رمز عبور",
+      name: "نام و نام خانوادگی", email: "ایمیل", password: "رمز عبور",
       haveAccount: "حساب کاربری دارید؟", noAccount: "هنوز عضو نشده‌اید؟",
       demo: "ورود با حساب نمایشی", terms: "با ادامه، شرایط استفاده و حریم خصوصی را می‌پذیرم.",
       empty: "اینجا نباید خالی باشد", passwordHint: "دست‌کم ۸ نویسه",
@@ -74,7 +74,7 @@ export const dict = {
       submit: "انتشار در بازار", success: "قاب شما منتشر شد", fileHint: "فقط JPEG، PNG یا WebP تا ۱۲ مگابایت", view: "دیدن قاب",
     },
     footer: { rights: "همه حقوق محفوظ است", made: "ساخته‌شده با ❤️ در ایران", product: "محصول", company: "شرکت", legal: "قوانین", about: "درباره ما", contact: "تماس با ما", privacy: "حریم خصوصی", terms: "شرایط استفاده", help: "راهنما" },
-    common: { toman: "تومان", loading: "در حال بارگذاری…", more: "بیشتر", back: "بازگشت", theme: "پوسته", lang: "زبان", menu: "فهرست", close: "بستن" },
+    common: { toman: "تومان", loading: "در حال بارگذاری…", more: "بیشتر", back: "بازگشت", theme: "پوسته", lang: "زبان", menu: "فهرست", close: "بستن", missing: "چیزی اینجا پیدا نشد", retry: "دوباره امتحان کنید" },
   },
   en: {
     dir: "ltr",
@@ -117,7 +117,7 @@ export const dict = {
       standardD: "Social media, websites and digital content",
       extendedD: "Unlimited commercial use, outdoor ads and packaging",
       likes: "likes", sales: "sales", by: "by", similar: "Similar frames", download: "Download", tags: "Tags",
-      bought: "Purchase completed", owned: "You own this photo", like: "Like",
+      bought: "Purchase completed", owned: "You own this photo", like: "Like", wallet: "Wallet balance", short: "Your wallet balance is too low for this license. Your wallet fills up from your own photo sales.", confirm: "Confirm and pay", cancel: "Cancel", payFrom: "Pay from wallet", after: "Balance after purchase",
     },
     explore: {
       title: "The market", sub: "Search thousands of Iranian frames",
@@ -125,7 +125,7 @@ export const dict = {
       priceLow: "Lowest price", priceHigh: "Highest price", popular: "Best selling",
       empty: "No frame matched your filters", results: "frames",
     },
-    missions: { open: "Open", closed: "Closed", reward: "Reward", deadline: "Deadline", submissions: "submissions", join: "Join mission", brief: "The brief", entries: "Entries", days: "days left" },
+    missions: { open: "Open", closed: "Closed", reward: "Reward", deadline: "Deadline", submissions: "submissions", join: "Join mission", brief: "The brief", entries: "Entries", days: "days left", ended: "Deadline passed" },
     auth: {
       loginT: "Welcome back", loginS: "Log in to continue",
       signupT: "Join Qaab", signupS: "Creating an account takes less than a minute",
@@ -147,7 +147,7 @@ export const dict = {
       submit: "Publish to market", success: "Your frame is live", fileHint: "JPEG, PNG or WebP, up to 12 MB", view: "View frame",
     },
     footer: { rights: "All rights reserved", made: "Made with ❤️ in Iran", product: "Product", company: "Company", legal: "Legal", about: "About", contact: "Contact", privacy: "Privacy", terms: "Terms of service", help: "Help" },
-    common: { toman: "Toman", loading: "Loading…", more: "More", back: "Back", theme: "Theme", lang: "Language", menu: "Menu", close: "Close" },
+    common: { toman: "Toman", loading: "Loading…", more: "More", back: "Back", theme: "Theme", lang: "Language", menu: "Menu", close: "Close", missing: "Nothing found here", retry: "Try again" },
   },
 } as const;
 

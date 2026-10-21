@@ -61,7 +61,6 @@ const sizes = { sm: "h-9 px-4 text-sm pointer-coarse:h-11", md: "h-11 px-5 text-
 type BtnProps = {
   children: ReactNode; href?: string; variant?: keyof typeof variants; size?: keyof typeof sizes;
   className?: string; onClick?: () => void; type?: "button" | "submit"; disabled?: boolean;
-  "aria-label"?: string;
 };
 
 export function Button({ children, href, variant = "primary", size = "md", className = "", type = "button", ...rest }: BtnProps) {
@@ -74,8 +73,7 @@ export function Skeleton({ className = "" }: { className?: string }) {
   return <div className={`shimmer rounded-2xl ${className}`} aria-hidden />;
 }
 
-/** Inline, announced feedback for the four states: status, completion, warning, error. */
-export function Notice({ tone = "error", children }: { tone?: "error" | "success"; children: ReactNode }) {
-  const color = tone === "error" ? "bg-red-500/10 text-red-600 dark:text-red-400" : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
-  return <p role={tone === "error" ? "alert" : "status"} className={`rounded-2xl p-3 text-sm ${color}`}>{children}</p>;
-}
+/** Inline error, announced to screen readers. */
+export const Notice = ({ children }: { children: ReactNode }) => (
+  <p role="alert" className="rounded-2xl bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400">{children}</p>
+);

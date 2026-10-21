@@ -3,9 +3,9 @@
 import { motion } from "framer-motion";
 import { Heart, ShoppingBag } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { api, mediaUrl, type Photo } from "@/lib/api";
+import { api, ApiError, loginPath, mediaUrl, type Photo } from "@/lib/api";
 import { money, num } from "@/lib/format";
 import { useI18n } from "./locale";
 import { useAuth } from "./providers";
@@ -15,13 +15,14 @@ export function PhotoCard({ photo, i = 0 }: { photo: Photo; i?: number }) {
   const { t, locale } = useI18n();
   const { user } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [liked, setLiked] = useState(photo.liked);
   const [likes, setLikes] = useState(photo.likes);
   const busy = useRef(false);
   const title = locale === "fa" ? photo.title_fa || photo.title : photo.title;
 
   const toggle = async () => {
-    if (!user) { router.push(`/${locale}/login`); return; }
+    if (!user) { router.push(loginPath(locale, pathname)); return; }
     if (busy.current) return;           // one request in flight; the UI already shows the new state
     busy.current = true;
     const next = !liked;
@@ -30,7 +31,10 @@ export function PhotoCard({ photo, i = 0 }: { photo: Photo; i?: number }) {
     try {
       const res = await api<{ liked: boolean; likes: number }>(`/api/photos/${photo.id}/like`, { method: "POST" });
       setLiked(res.liked); setLikes(res.likes);
-    } catch { setLiked(!next); setLikes((n) => n + (next ? -1 : 1)); }
+    } catch (e) {
+      setLiked(!next); setLikes((n) => n + (next ? -1 : 1));
+      if (e instanceof ApiError && e.status === 401) router.push(loginPath(locale, pathname));
+    }
     finally { busy.current = false; }
   };
 
@@ -73,7 +77,7 @@ export function PhotoCard({ photo, i = 0 }: { photo: Photo; i?: number }) {
       {/* A sibling of the link (a button inside <a> is invalid and unreachable by keyboard). */}
       <motion.button type="button" onClick={toggle} aria-label={t.photo.like} aria-pressed={liked}
         whileTap={{ scale: 0.85 }} transition={settle}
-        className="absolute top-3 grid size-10 place-items-center rounded-2xl bg-black/35 text-white backdrop-blur transition-opacity duration-200 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/60 ltr:right-3 rtl:left-3 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-coarse:size-11">
+        className="absolute top-3 grid size-10 place-items-center rounded-2xl bg-black/45 text-white transition-opacity duration-200 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/60 ltr:right-3 rtl:left-3 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 pointer-coarse:size-11">
         <Heart className={`size-4 transition-colors ${liked ? "fill-red-500 text-red-500" : ""}`} aria-hidden />
       </motion.button>
     </motion.div>

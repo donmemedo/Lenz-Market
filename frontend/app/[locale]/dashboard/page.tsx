@@ -1,13 +1,14 @@
 "use client";
 
-import { Heart, Images, LogOut, ShoppingBag, TrendingUp, Upload, Wallet } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { Download, Heart, Images, LogOut, ShoppingBag, TrendingUp, Upload, Wallet } from "lucide-react";
+import Link from "next/link";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/components/locale";
 import { Masonry, PhotoCard } from "@/components/photo-card";
 import { useAuth } from "@/components/providers";
-import { Button, Reveal, Skeleton } from "@/components/ui";
-import { api, mediaUrl, type Photo, type Purchase } from "@/lib/api";
+import { Button, Notice, Reveal, Skeleton } from "@/components/ui";
+import { api, downloadPhoto, loginPath, mediaUrl, type Photo, type Purchase } from "@/lib/api";
 import { dateLabel, money, num } from "@/lib/format";
 
 type Earnings = { balance: number; photos: number; sales: number; likes: number; revenue: number };
@@ -17,24 +18,29 @@ export default function DashboardPage() {
   const { locale: loc } = useParams<{ locale: string }>();
   const { user, ready, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const [error, setError] = useState("");
   const [earn, setEarn] = useState<Earnings | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [buys, setBuys] = useState<Purchase[]>([]);
   const [tab, setTab] = useState<"photos" | "purchases">("photos");
 
-  useEffect(() => { if (ready && !user) router.replace(`/${loc}/login`); }, [ready, user, router, loc]);
+  useEffect(() => { if (ready && !user) router.replace(loginPath(loc, pathname)); }, [ready, user, router, loc, pathname]);
 
+  // The cookie already authenticates these, so they start with the page instead of after /me.
   useEffect(() => {
-    if (!user) return;
     void api<Earnings>("/api/me/earnings").then(setEarn).catch(() => {});
-    void api<Photo[]>(`/api/photos?owner_id=${user.id}&limit=60&sort=newest`).then(setPhotos).catch(() => {});
     void api<Purchase[]>("/api/purchases").then(setBuys).catch(() => {});
-  }, [user]);
+  }, []);
+  const uid = user?.id;
+  useEffect(() => {
+    if (uid) void api<Photo[]>(`/api/photos?owner_id=${uid}&limit=60&sort=newest`).then(setPhotos).catch(() => {});
+  }, [uid]);
 
   if (!user) return <div className="mx-auto max-w-7xl px-4 py-16"><Skeleton className="h-64 w-full" /></div>;
 
   const cards = [
-    { icon: Wallet, label: t.dash.balance, value: `${money(earn?.balance ?? 0, locale)} ${t.common.toman}`, accent: true },
+    { icon: Wallet, label: t.dash.balance, value: `${money(earn?.balance ?? user.balance, locale)} ${t.common.toman}`, accent: true },
     { icon: Images, label: t.dash.photos, value: num(earn?.photos ?? 0, locale) },
     { icon: ShoppingBag, label: t.dash.sales, value: num(earn?.sales ?? 0, locale) },
     { icon: Heart, label: t.dash.likes, value: num(earn?.likes ?? 0, locale) },
@@ -74,8 +80,8 @@ export default function DashboardPage() {
 
       <div className="mt-10 flex gap-2 border-b border-line pb-4">
         {([["photos", t.dash.myPhotos], ["purchases", t.dash.purchases]] as const).map(([key, label]) => (
-          <button key={key} onClick={() => setTab(key)}
-            className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${tab === key ? "gradient-bg text-white" : "bg-ink/5 text-muted hover:bg-ink/10 dark:bg-white/10"}`}>
+          <button key={key} type="button" onClick={() => setTab(key)} aria-pressed={tab === key}
+            className={`min-h-10 rounded-2xl px-4 text-sm font-bold transition active:scale-[.97] pointer-coarse:min-h-11 ${tab === key ? "gradient-bg text-white" : "bg-ink/5 text-muted hover:bg-ink/10 dark:bg-white/10"}`}>
             {label}
           </button>
         ))}
@@ -90,15 +96,23 @@ export default function DashboardPage() {
           <p className="py-20 text-center text-muted">{t.dash.emptyBuys}</p>
         ) : (
           <div className="grid gap-3">
+            {error && <Notice>{error}</Notice>}
             {buys.map((b) => (
               <div key={b.id} className="flex items-center gap-4 rounded-3xl border border-line bg-surface/60 p-3 backdrop-blur">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={mediaUrl(b.photo.thumb)} alt="" className="size-16 rounded-2xl object-cover" />
-                <div className="min-w-0">
-                  <p className="truncate font-bold">{locale === "fa" ? b.photo.title_fa : b.photo.title}</p>
-                  <p className="text-xs text-muted">{dateLabel(b.created_at, locale)} · {b.license}</p>
-                </div>
-                <p className="ms-auto shrink-0 font-black text-brand">{money(b.amount, locale)} {t.common.toman}</p>
+                <Link href={`/${loc}/photo/${b.photo.id}`} className="flex min-w-0 flex-1 items-center gap-4 rounded-2xl active:scale-[.99]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={mediaUrl(b.photo.thumb)} alt="" loading="lazy" decoding="async" className="size-16 rounded-2xl object-cover" />
+                  <div className="min-w-0">
+                    <p className="truncate font-bold">{locale === "fa" ? b.photo.title_fa || b.photo.title : b.photo.title}</p>
+                    <p className="text-xs text-muted">{dateLabel(b.created_at, locale)} · {b.license === "extended" ? t.photo.extended : t.photo.standard}</p>
+                  </div>
+                </Link>
+                <p className="shrink-0 font-black text-brand">{money(b.amount, locale)} {t.common.toman}</p>
+                <button type="button" aria-label={t.photo.download}
+                  onClick={() => { setError(""); downloadPhoto(b.photo.id).catch((e) => setError((e as Error).message)); }}
+                  className="grid size-11 shrink-0 place-items-center rounded-2xl border border-line transition hover:bg-surface active:scale-95">
+                  <Download className="size-4" aria-hidden />
+                </button>
               </div>
             ))}
           </div>

@@ -1,6 +1,7 @@
 import random
 from datetime import timedelta
 
+from sqlalchemy import update
 from sqlmodel import Session, select
 
 from .db import engine
@@ -69,6 +70,15 @@ MISSIONS = [
 
 def img(seed: str, w: int = 1400, h: int = 1000) -> str:
     return f"https://picsum.photos/seed/{seed}/{w}/{h}"
+
+
+def lock_sample_accounts(include_demo: bool) -> None:
+    """Older releases gave the sample creators (and the demo) published passwords.
+    Make those accounts unusable on existing databases and end their sessions."""
+    emails = [email for _, email, _, _ in CREATORS] + (["demo@qaab.ir"] if include_demo else [])
+    with engine.begin() as c:
+        c.execute(update(User).where(User.email.in_(emails), User.password_hash != "!")
+                  .values(password_hash="!", token_version=User.token_version + 1))
 
 
 def seed() -> None:

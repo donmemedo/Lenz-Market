@@ -3,13 +3,11 @@
 import { Camera, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useI18n } from "@/components/locale";
 import { useAuth } from "@/components/providers";
 import { Button, Notice } from "@/components/ui";
-
-// The shared demo login exists only where the API seeds it (never in production builds).
-const DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
+import { api, safeNext } from "@/lib/api";
 
 function Field({ label, hint, ...props }: { label: string; hint?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
@@ -32,6 +30,12 @@ function LoginInner() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [demoOn, setDemoOn] = useState(false);
+  useEffect(() => setMode(search.get("mode") === "signup" ? "signup" : "login"), [search]); // header links switch the form
+  const done = () => router.push(safeNext(search.get("next")) ?? `/${locale}/dashboard`);
+
+  // The API says whether the shared demo account exists (never in production), so UI and API agree.
+  useEffect(() => { void api<{ demo: boolean }>("/api/health").then((h) => setDemoOn(h.demo)).catch(() => {}); }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,13 +43,13 @@ function LoginInner() {
     try {
       if (mode === "signup") await register(form.name, form.email, form.password);
       else await login(form.email, form.password);
-      router.push(`/${locale}/dashboard`);
+      done();
     } catch (err) { setError((err as Error).message); } finally { setBusy(false); }
   };
 
   const demo = async () => {
     setBusy(true); setError("");
-    try { await login("demo@qaab.ir", "demo1234"); router.push(`/${locale}/dashboard`); }
+    try { await login("demo@qaab.ir", "demo1234"); done(); }
     catch (err) { setError((err as Error).message); } finally { setBusy(false); }
   };
 
@@ -90,7 +94,7 @@ function LoginInner() {
             {busy && <Loader2 className="size-4 animate-spin" />}
             {signup ? t.cta.signup : t.cta.login}
           </Button>
-          {DEMO && (
+          {demoOn && (
             <Button type="button" variant="ghost" size="lg" className="w-full" onClick={demo} disabled={busy}>
               {t.auth.demo}
             </Button>

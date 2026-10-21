@@ -5,4 +5,4 @@ sqlmodel==0.0.48
 pydantic[email]==2.14.1
 python-multipart==0.0.32
 PyJWT==2.15.1
-Pillow==12.3.0
+Pillow==13.0.0

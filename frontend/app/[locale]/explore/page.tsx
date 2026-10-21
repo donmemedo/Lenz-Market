@@ -24,7 +24,7 @@ function ExploreInner() {
   useEffect(() => { void api<Category[]>("/api/categories").then(setCats).catch(() => {}); }, []);
   useEffect(() => {
     setPhotos(null);
-    void api<Photo[]>(`/api/photos?limit=60&q=${encodeURIComponent(q)}&category=${category}&sort=${sort}`)
+    void api<Photo[]>(`/api/photos?${new URLSearchParams({ limit: "60", q, category, sort })}`)
       .then(setPhotos).catch(() => setPhotos([]));
   }, [q, category, sort]);
 
@@ -42,20 +42,20 @@ function ExploreInner() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
       <Reveal>
-        <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
+        <h1 className="text-4xl font-black ltr:tracking-tight sm:text-5xl">
           {q ? `“${q}”` : <span className="gradient-text">{t.explore.title}</span>}
         </h1>
         <p className="mt-2 text-muted">{t.explore.sub}</p>
       </Reveal>
 
       <div className="no-scrollbar mt-8 flex gap-2 overflow-x-auto pb-1">
-        <button onClick={() => setParam("category", "")}
-          className={`shrink-0 rounded-2xl border px-4 py-2 text-sm font-medium transition ${!category ? "gradient-bg border-transparent text-white" : "border-line bg-surface/60 hover:bg-surface"}`}>
+        <button type="button" onClick={() => setParam("category", "")} aria-pressed={!category}
+          className={`min-h-10 shrink-0 rounded-2xl border px-4 text-sm font-medium transition active:scale-[.97] pointer-coarse:min-h-11 ${!category ? "gradient-bg border-transparent text-white" : "border-line bg-surface/60 hover:bg-surface"}`}>
           {t.explore.all}
         </button>
         {cats.map((c) => (
-          <button key={c.slug} onClick={() => setParam("category", c.slug)}
-            className={`shrink-0 rounded-2xl border px-4 py-2 text-sm font-medium transition ${category === c.slug ? "gradient-bg border-transparent text-white" : "border-line bg-surface/60 hover:bg-surface"}`}>
+          <button key={c.slug} type="button" onClick={() => setParam("category", c.slug)} aria-pressed={category === c.slug}
+            className={`min-h-10 shrink-0 rounded-2xl border px-4 text-sm font-medium transition active:scale-[.97] pointer-coarse:min-h-11 ${category === c.slug ? "gradient-bg border-transparent text-white" : "border-line bg-surface/60 hover:bg-surface"}`}>
             {locale === "fa" ? c.fa : c.en}
           </button>
         ))}
@@ -65,8 +65,8 @@ function ExploreInner() {
         <span className="flex items-center gap-2 text-sm text-muted"><SlidersHorizontal className="size-4" />{t.explore.sort}</span>
         <div className="no-scrollbar flex gap-2 overflow-x-auto">
           {sorts.map(([key, label]) => (
-            <button key={key} onClick={() => setParam("sort", key)}
-              className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-medium transition ${sort === key ? "bg-ink text-bg" : "bg-ink/5 text-muted hover:bg-ink/10 dark:bg-white/10 dark:hover:bg-white/15"}`}>
+            <button key={key} type="button" onClick={() => setParam("sort", key)} aria-pressed={sort === key}
+              className={`min-h-9 shrink-0 rounded-xl px-3 text-xs font-medium transition active:scale-[.97] pointer-coarse:min-h-11 ${sort === key ? "bg-ink text-bg" : "bg-ink/5 text-muted hover:bg-ink/10 dark:bg-white/10 dark:hover:bg-white/15"}`}>
               {label}
             </button>
           ))}

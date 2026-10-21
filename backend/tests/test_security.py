@@ -220,3 +220,69 @@ def test_photo_list_has_no_n_plus_one(client):
     finally:
         event.remove(engine, "before_cursor_execute", listener)
     assert len(seen) <= 5
+
+
+# ---------- follow-ups from the verification review ----------
+def test_browser_login_gets_no_readable_token(client):
+    r = client.post("/api/auth/login", json={"email": "demo@qaab.ir", "password": "demo1234"}, headers=ORIGIN)
+    client.cookies.clear()
+    assert r.status_code == 200 and r.json()["token"] is None
+
+
+def test_legacy_sample_accounts_are_locked(client):
+    from sqlmodel import Session, select
+    from app.models import User
+    from app.security import hash_password
+    from app.seed import lock_sample_accounts
+    with Session(engine) as s:  # an old database still holding the published sample password
+        u = s.exec(select(User).where(User.email == "arash@qaab.ir")).one()
+        u.password_hash = hash_password("qaab1234", iterations=120_000)
+        s.add(u); s.commit()
+    lock_sample_accounts(include_demo=False)
+    assert client.post("/api/auth/login", json={"email": "arash@qaab.ir", "password": "qaab1234"}).status_code == 401
+
+
+def test_legacy_public_upload_becomes_private(client):
+    from sqlmodel import Session
+    from app.api import migrate_legacy_uploads
+    from app.config import MEDIA_DIR, ORIGINALS_DIR
+    from app.models import Photo
+    (MEDIA_DIR / "legacyfile.png").write_bytes(png_bytes())
+    with Session(engine) as s:
+        p = Photo(owner_id=1, title="old", url="/media/legacyfile.png", thumb="/media/legacyfile.png")
+        s.add(p); s.commit(); s.refresh(p); pid = p.id
+        migrate_legacy_uploads(s)
+        p = s.get(Photo, pid)
+    assert not (MEDIA_DIR / "legacyfile.png").exists()
+    assert p.url.endswith(".jpg") and (ORIGINALS_DIR / p.url.split("/")[-1]).is_file()
+
+
+def test_camera_jpeg_with_embedded_preview_is_accepted(client):
+    from PIL import Image
+    _, h = register(client)
+    buf = io.BytesIO()
+    Image.new("RGB", (40, 30)).save(buf, "MPO", save_all=True, append_images=[Image.new("RGB", (20, 15))])
+    assert _upload(client, h, buf.getvalue(), "camera.jpg", "image/jpeg").status_code == 200
+
+
+def test_pending_uploads_are_capped(client):
+    _, h = register(client)
+    codes = [_upload(client, h, png_bytes(8, 8)).status_code for _ in range(21)]
+    assert codes[:20] == [200] * 20 and codes[20] == 429
+
+
+def test_original_download_is_owner_or_buyer_only(client):
+    _, owner = register(client)
+    _, stranger = register(client)
+    url = _upload(client, owner, png_bytes()).json()["url"]
+    pid = client.post("/api/photos", headers=owner, json={"title": "t", "price": 10000, "url": url}).json()["id"]
+    got = client.get(f"/api/photos/{pid}/download", headers=owner)
+    assert got.status_code == 200 and got.headers["content-type"] == "image/jpeg"
+    assert client.get(f"/api/photos/{pid}/download", headers=stranger).status_code == 403
+    buyer = login(client, "demo@qaab.ir", "demo1234")
+    assert client.post(f"/api/photos/{pid}/buy", headers=buyer).status_code == 200
+    assert client.get(f"/api/photos/{pid}/download", headers=buyer).status_code == 200
+
+
+def test_health_reports_demo_mode(client):
+    assert client.get("/api/health").json()["demo"] is True

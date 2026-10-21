@@ -41,14 +41,18 @@
   --radius-xl2: 1.75rem;
 }
 
-* { border-color: rgb(var(--line)); }
+/* In the base layer so Tailwind utilities (border-red-500, leading-*, tracking-*) still win. */
+@layer base {
+  *, ::before, ::after { border-color: rgb(var(--line)); }
+  /* Tracking and leading follow size (Apple UI typography): tight for display text, open for body. */
+  h1, h2, .display { line-height: 1.3; text-wrap: balance; }
+  /* Latin display text tightens; Persian is a joined script, so it keeps natural spacing and taller leading. */
+  :lang(en) :is(h1, h2, .display) { letter-spacing: -0.02em; line-height: 1.1; }
+  p { text-wrap: pretty; }
+  :focus-visible { outline: 3px solid rgb(var(--brand) / .55); outline-offset: 2px; }
+}
 
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
-
-/* Tracking and leading follow size (Apple UI typography): tight for display text, open for body. */
-h1, h2, .display { letter-spacing: -0.02em; line-height: 1.1; text-wrap: balance; }
-p { text-wrap: pretty; }
-:focus-visible { outline: 3px solid rgb(var(--brand) / .55); outline-offset: 2px; }
 
 body {
   background: rgb(var(--bg));
@@ -69,7 +73,7 @@ body {
 .dark .aurora { opacity: .42; }
 .aurora span {
   position: absolute; border-radius: 999px; display: block; will-change: transform;
-  animation: drift 22s ease-in-out infinite alternate;
+  animation: drift 22s ease-in-out 2 alternate; /* drifts out and back once, then rests: no endless GPU work */
 }
 .aurora span:nth-child(1) { width: 46vw; height: 46vw; left: 4%; top: 6%;
   background: radial-gradient(closest-side, rgb(var(--brand) / .55), transparent); }
@@ -120,7 +124,10 @@ body {
 @keyframes shimmer { from { background-position: 100% 0 } to { background-position: 0 0 } }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important; animation-iteration-count: 1 !important;  /* no 0.01 ms flicker loops */
+    transition-duration: .01ms !important; scroll-behavior: auto !important;
+  }
   .aurora span { animation: none; }
 }
 /* Solid surfaces for people who turn transparency off; stronger edges for increased contrast. */

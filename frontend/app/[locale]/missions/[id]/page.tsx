@@ -13,15 +13,25 @@ export default function MissionPage() {
   const { t, locale } = useI18n();
   const { id } = useParams<{ id: string }>();
   const [mission, setMission] = useState<Mission | null>(null);
+  const [missing, setMissing] = useState(false);
   const [photos, setPhotos] = useState<Photo[]>([]);
 
   useEffect(() => {
-    void api<Mission>(`/api/missions/${id}`).then(setMission).catch(() => {});
+    void api<Mission>(`/api/missions/${id}`).then(setMission).catch(() => setMissing(true));
     void api<Photo[]>(`/api/missions/${id}/photos`).then(setPhotos).catch(() => {});
   }, [id]);
 
+  if (missing) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-24 text-center">
+        <p className="text-lg font-bold">{t.common.missing}</p>
+        <Button href={`/${locale}/missions`} variant="ghost" className="mt-6">{t.nav.missions}</Button>
+      </div>
+    );
+  }
   if (!mission) return <div className="mx-auto max-w-7xl px-4 py-10"><Skeleton className="h-96 w-full" /></div>;
 
+  const open = mission.is_open && daysLeft(mission.deadline) > 0; // the API refuses entries after the deadline
   const stats = [
     { icon: Gift, label: t.missions.reward, value: `${money(mission.reward, locale)} ${t.common.toman}` },
     { icon: Images, label: t.missions.submissions, value: num(mission.submissions, locale) },
@@ -41,8 +51,8 @@ export default function MissionPage() {
               <img src={mediaUrl(mission.brand_logo)} alt={mission.brand} className="size-12 rounded-2xl border border-white/30 object-cover" />
               <div>
                 <p className="text-sm opacity-80">{mission.brand}</p>
-                <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${mission.is_open ? "bg-emerald-500" : "bg-black/60"}`}>
-                  {mission.is_open ? t.missions.open : t.missions.closed}
+                <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${open ? "bg-emerald-500" : "bg-black/60"}`}>
+                  {open ? t.missions.open : t.missions.closed}
                 </span>
               </div>
             </div>
@@ -71,9 +81,13 @@ export default function MissionPage() {
                 </div>
               ))}
             </div>
-            <Button href={`/${locale}/upload?mission=${mission.id}`} size="lg" className="mt-6 w-full">
-              <Upload className="size-4" /> {t.missions.join}
-            </Button>
+            {open ? (
+              <Button href={`/${locale}/upload?mission=${mission.id}`} size="lg" className="mt-6 w-full">
+                <Upload className="size-4" /> {t.missions.join}
+              </Button>
+            ) : (
+              <Button size="lg" variant="soft" className="mt-6 w-full" disabled>{t.missions.ended}</Button>
+            )}
           </div>
         </Reveal>
       </div>

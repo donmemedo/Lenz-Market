@@ -5,7 +5,7 @@ import { Camera, LayoutDashboard, LogOut, Menu, Moon, Search, Sun, Upload, X } f
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "./locale";
 import { useAuth } from "./providers";
 import { Button, settle } from "./ui";
@@ -22,7 +22,7 @@ function ThemeToggle({ label }: { label: string }) {
       onClick={() => setTheme(dark ? "light" : "dark")}
       className="relative grid size-10 place-items-center rounded-2xl border border-line bg-surface/60 backdrop-blur transition hover:bg-surface active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/40 pointer-coarse:size-11"
     >
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence initial={false}>
         <motion.span
           key={dark ? "moon" : "sun"}
           initial={{ opacity: 0, rotate: -90, scale: 0.6 }}
@@ -60,7 +60,10 @@ export function Header({ locale }: { locale: string }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
+  const trigger = useRef<HTMLButtonElement>(null);
 
+  useEffect(() => setOpen(false), [pathname]); // any navigation closes the menu
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
     onScroll();
@@ -71,8 +74,14 @@ export function Header({ locale }: { locale: string }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const button = trigger.current;
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden"; // the page behind the dialog stays put
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+      button?.focus(); // focus returns to the control that opened the menu
+    };
   }, [open]);
 
   const links = [
@@ -88,14 +97,14 @@ export function Header({ locale }: { locale: string }) {
   };
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-500 ${scrolled ? "py-2" : "py-4"}`}>
+    <header className="sticky top-0 z-50 py-3">
       <div className="mx-auto max-w-7xl px-4">
-        <div className={`flex items-center gap-3 rounded-3xl px-3 transition-all duration-500 ${scrolled ? "glass py-2 shadow-xl shadow-black/5" : "py-2"}`}>
+        <div className={`flex items-center gap-3 rounded-3xl px-3 py-2 transition-[background-color,box-shadow,border-color] duration-300 ${scrolled ? "glass shadow-xl shadow-black/5" : "border border-transparent"}`}>
           <Link href={`/${locale}`} className="flex items-center gap-2.5 shrink-0">
             <span className="grid size-10 place-items-center rounded-2xl gradient-bg ring-glow">
               <Camera className="size-5 text-white" />
             </span>
-            <span className="hidden text-lg font-extrabold tracking-tight sm:block">{t.brand}</span>
+            <span className="hidden text-lg font-extrabold ltr:tracking-tight sm:block">{t.brand}</span>
           </Link>
 
           <nav className="hidden items-center gap-1 lg:flex">
@@ -134,7 +143,7 @@ export function Header({ locale }: { locale: string }) {
                 <Button href={`/${locale}/login?mode=signup`} size="sm">{t.cta.signup}</Button>
               </div>
             )}
-            <button type="button" onClick={() => setOpen(true)} aria-label={t.common.menu} aria-expanded={open}
+            <button ref={trigger} type="button" onClick={() => setOpen(true)} aria-label={t.common.menu} aria-expanded={open}
               className="grid size-10 place-items-center rounded-2xl border border-line bg-surface/60 active:scale-95 lg:hidden pointer-coarse:size-11">
               <Menu className="size-[18px]" />
             </button>

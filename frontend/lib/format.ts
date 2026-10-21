@@ -3,9 +3,11 @@ const FA_DIGITS = "۰۱۲۳۴۵۶۷۸۹";
 export const toFaDigits = (s: string | number) =>
   String(s).replace(/\d/g, (d) => FA_DIGITS[Number(d)]);
 
+// fa-IR gives Persian digits and the Persian thousands separator (٬) in one step.
+const fmt = (locale: string) => new Intl.NumberFormat(locale === "en" ? "en-US" : "fa-IR");
+
 export function money(v: number, locale: string) {
-  const n = new Intl.NumberFormat("en-US").format(Math.round(v));
-  return locale === "en" ? n : toFaDigits(n);
+  return fmt(locale).format(Math.round(v));
 }
 
 export function compact(v: number, locale: string) {
@@ -14,8 +16,7 @@ export function compact(v: number, locale: string) {
 }
 
 export function num(v: number, locale: string) {
-  const n = new Intl.NumberFormat("en-US").format(v);
-  return locale === "en" ? n : toFaDigits(n);
+  return fmt(locale).format(v);
 }
 
 export function daysLeft(deadline: string) {

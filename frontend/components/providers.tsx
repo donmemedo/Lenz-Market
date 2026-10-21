@@ -3,7 +3,7 @@
 import { MotionConfig } from "framer-motion";
 import { ThemeProvider } from "next-themes";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { api, type User } from "@/lib/api";
+import { api, UNAUTHORIZED_EVENT, type User } from "@/lib/api";
 
 type AuthCtx = {
   user: User | null;
@@ -27,7 +27,18 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     finally { setReady(true); }
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+    // A session can end elsewhere (logout on another device, expiry): drop it here too.
+    const drop = () => setUser(null);
+    const recheck = () => { if (document.visibilityState === "visible") void refresh(); };
+    window.addEventListener(UNAUTHORIZED_EVENT, drop);
+    document.addEventListener("visibilitychange", recheck);
+    return () => {
+      window.removeEventListener(UNAUTHORIZED_EVENT, drop);
+      document.removeEventListener("visibilitychange", recheck);
+    };
+  }, [refresh]);
 
   const value = useMemo<AuthCtx>(() => {
     const start = async (path: string, body: object) => {

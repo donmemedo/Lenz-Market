@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, Briefcase, Building2, ChevronDown, Leaf, Plane, Search,
   Shapes, Sparkles, Users, Utensils, Wallet,
@@ -33,24 +33,20 @@ export function Home({ locale }: { locale: string }) {
   const [creators, setCreators] = useState<PublicUser[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [q, setQ] = useState("");
-  const [faq, setFaq] = useState<number | null>(0);
 
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const y1 = useTransform(scrollYProgress, [0, 1], [0, -90]);
   const y2 = useTransform(scrollYProgress, [0, 1], [0, 70]);
+  const still = useReducedMotion(); // scroll-linked parallax is motion too
 
   useEffect(() => {
-    void (async () => {
-      const [p, m, c, cr, s] = await Promise.all([
-        api<Photo[]>("/api/photos?limit=12&sort=trending"),
-        api<Mission[]>("/api/missions?limit=3"),
-        api<Category[]>("/api/categories"),
-        api<PublicUser[]>("/api/creators?limit=6"),
-        api<Stats>("/api/stats"),
-      ]);
-      setPhotos(p); setMissions(m); setCats(c); setCreators(cr); setStats(s);
-    })().catch(() => setPhotos([]));
+    // Each section loads on its own: one failing call no longer blanks the whole page.
+    api<Photo[]>("/api/photos?limit=12&sort=trending").then(setPhotos).catch(() => setPhotos([]));
+    api<Mission[]>("/api/missions?limit=3").then(setMissions).catch(() => {});
+    api<Category[]>("/api/categories").then(setCats).catch(() => {});
+    api<PublicUser[]>("/api/creators?limit=6").then(setCreators).catch(() => {});
+    api<Stats>("/api/stats").then(setStats).catch(() => {});
   }, []);
 
   const Arrow = rtl ? ArrowLeft : ArrowRight;
@@ -80,20 +76,16 @@ export function Home({ locale }: { locale: string }) {
               {t.hero.badge}
             </motion.span>
 
-            <h1 className="mt-6 text-[clamp(2.6rem,7vw,4.6rem)] font-black leading-[1.08] tracking-tight">
+            <h1 className="mt-6 text-[clamp(2.6rem,7vw,4.6rem)] font-black leading-[1.25] ltr:leading-[1.08] ltr:tracking-tight">
               {[t.hero.title1, t.hero.title2, t.hero.title3].map((line, i) => (
-                <motion.span key={i} className="block"
-                  initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.08 * i, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}>
+                <span key={i} className="block">
                   {i === 2 ? <span className="gradient-text">{line}</span> : line}
-                </motion.span>
+                </span>
               ))}
             </h1>
 
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35, duration: 0.8 }}
-              className="mt-6 max-w-xl text-base leading-8 text-muted sm:text-lg">
-              {t.hero.sub}
-            </motion.p>
+            {/* The headline and intro are the largest paint: render them visible, not faded in after hydration. */}
+            <p className="mt-6 max-w-xl text-base leading-8 text-muted sm:text-lg">{t.hero.sub}</p>
 
             <motion.form
               initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45, duration: 0.7 }}
@@ -119,7 +111,7 @@ export function Home({ locale }: { locale: string }) {
               ? <Skeleton className="size-full" />
               : (
                 <>
-                  <motion.div style={{ y: y1 }} className="absolute inset-y-0 w-[46%] ltr:left-0 rtl:right-0">
+                  <motion.div style={still ? undefined : { y: y1 }} className="absolute inset-y-0 w-[46%] ltr:left-0 rtl:right-0">
                     {photos.slice(0, 2).map((p, i) => (
                       <motion.div key={p.id}
                         initial={{ opacity: 0, scale: 0.92, rotate: rtl ? 4 : -4 }}
@@ -131,7 +123,7 @@ export function Home({ locale }: { locale: string }) {
                       </motion.div>
                     ))}
                   </motion.div>
-                  <motion.div style={{ y: y2 }} className="absolute inset-y-6 w-[46%] ltr:right-0 rtl:left-0">
+                  <motion.div style={still ? undefined : { y: y2 }} className="absolute inset-y-6 w-[46%] ltr:right-0 rtl:left-0">
                     {photos.slice(2, 4).map((p, i) => (
                       <motion.div key={p.id}
                         initial={{ opacity: 0, scale: 0.92, rotate: rtl ? -4 : 4 }}
@@ -276,17 +268,15 @@ export function Home({ locale }: { locale: string }) {
         <div className="space-y-3">
           {t.faq.map((f, i) => (
             <Reveal key={f.q} i={i}>
-              <button onClick={() => setFaq(faq === i ? null : i)}
-                className="w-full overflow-hidden rounded-3xl border border-line bg-surface/60 p-5 text-start backdrop-blur transition hover:bg-surface">
-                <span className="flex items-center justify-between gap-4">
-                  <span className="font-bold">{f.q}</span>
-                  <ChevronDown className={`size-5 shrink-0 text-muted transition-transform duration-300 ${faq === i ? "rotate-180" : ""}`} />
-                </span>
-                <motion.span initial={false} animate={{ height: faq === i ? "auto" : 0, opacity: faq === i ? 1 : 0 }}
-                  className="block overflow-hidden text-sm leading-8 text-muted">
-                  <span className="block pt-3">{f.a}</span>
-                </motion.span>
-              </button>
+              {/* Native disclosure: announced state, keyboard support, one open at a time via name. */}
+              <details name="faq" open={i === 0}
+                className="group rounded-3xl border border-line bg-surface/60 p-5 backdrop-blur transition hover:bg-surface">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold [&::-webkit-details-marker]:hidden">
+                  {f.q}
+                  <ChevronDown className="size-5 shrink-0 text-muted transition-transform duration-300 group-open:rotate-180" aria-hidden />
+                </summary>
+                <p className="pt-3 text-sm leading-8 text-muted">{f.a}</p>
+              </details>
             </Reveal>
           ))}
         </div>

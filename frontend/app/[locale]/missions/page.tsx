@@ -14,7 +14,7 @@ export default function MissionsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
       <Reveal>
-        <h1 className="text-4xl font-black tracking-tight sm:text-5xl"><span className="gradient-text">{t.sections.missions}</span></h1>
+        <h1 className="text-4xl font-black ltr:tracking-tight sm:text-5xl"><span className="gradient-text">{t.sections.missions}</span></h1>
         <p className="mt-2 max-w-xl text-muted">{t.sections.missionsSub}</p>
       </Reveal>
       <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

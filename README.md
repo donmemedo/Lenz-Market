@@ -44,10 +44,32 @@ NEXT_PUBLIC_API_URL=http://localhost:8041 npm run dev -- -p 3041
 
 ## حساب نمایشی | Demo account
 
+فقط در حالت توسعه (`APP_ENV=development` و `QAAB_SEED_DEMO=1`) ساخته می‌شود و در حالت production هرگز وجود ندارد.
+Only in development; production never seeds it. Sample creators cannot log in.
+
 ```
 demo@qaab.ir / demo1234
 ```
-(هر عکاس نمونه هم با رمز `qaab1234` وارد می‌شود.)
+
+## استقرار امن | Production
+
+```bash
+APP_ENV=production                       # HTTPS-only cookie, HSTS, no /docs, no demo data
+SECRET_KEY=$(python -c "import secrets;print(secrets.token_urlsafe(48))")
+CORS_ORIGINS=https://qaab.ir             # the web origin(s)
+NEXT_PUBLIC_API_URL=https://api.qaab.ir  # must share the site with the web origin (SameSite cookie)
+FORWARDED_ALLOW_IPS=<reverse proxy IP>   # so per-IP rate limits see real clients
+```
+
+`docker-compose.yml` defaults to development for local use, so set `APP_ENV=production` on a server.
+Run the API behind an HTTPS reverse proxy. Details and the full audit: [SECURITY_AUDIT.md](SECURITY_AUDIT.md).
+
+## آزمون‌های امنیتی | Security tests
+
+```bash
+cd backend && .venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python -m pytest -q -p no:cacheprovider tests
+```
 
 ## امکانات | Features
 
@@ -55,7 +77,7 @@ demo@qaab.ir / demo1234
 - **بازار**: جستجو، فیلتر دسته‌بندی، مرتب‌سازی (پرطرفدار/تازه/پرفروش/قیمت)
 - **صفحه عکس**: انتخاب مجوز (استاندارد / نامحدود تجاری)، خرید، پسندیدن، قاب‌های مشابه
 - **مأموریت برندها**: خلاصه، جایزه، مهلت، ارسال‌ها
-- **حساب کاربری**: ورود/ثبت‌نام با JWT، پیش‌خوان با کیف پول و آمار فروش، بارگذاری عکس
+- **حساب کاربری**: ورود/ثبت‌نام با نشست امن (کوکی httpOnly)، پیش‌خوان با کیف پول و آمار فروش، بارگذاری عکس
 - **پوسته روشن/تیره** با انیمیشن، **دوزبانه fa/en** با RTL کامل، ریسپانسیو از موبایل تا دسکتاپ
 
 نگارش فارسی رابط کاربری بر پایه‌ی

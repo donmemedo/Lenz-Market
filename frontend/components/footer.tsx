@@ -1,6 +1,6 @@
 "use client";
 
-import { AtSign, Camera, Globe, Send } from "lucide-react";
+import { Camera } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "./locale";
 
@@ -21,13 +21,6 @@ export function Footer({ locale }: { locale: string }) {
               <span className="text-lg font-extrabold">{t.brand}</span>
             </div>
             <p className="mt-4 max-w-xs text-sm leading-7 text-muted">{t.hero.sub}</p>
-            <div className="mt-5 flex gap-2">
-              {[AtSign, Send, Globe].map((Icon, i) => (
-                <a key={i} href="#" className="grid size-10 place-items-center rounded-2xl border border-line transition hover:bg-ink/5 dark:hover:bg-white/10">
-                  <Icon className="size-[18px]" />
-                </a>
-              ))}
-            </div>
           </div>
           {cols.map((c) => (
             <div key={c.title}>

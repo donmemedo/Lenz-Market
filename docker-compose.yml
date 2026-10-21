@@ -5,11 +5,12 @@ services:
     environment:
       QAAB_DATA_DIR: /srv/data
       QAAB_MEDIA_DIR: /srv/media
-      # Empty SECRET_KEY in development = random key generated once in the data volume.
-      SECRET_KEY: ${SECRET_KEY:-}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3041}
       APP_ENV: ${APP_ENV:-development}
-      QAAB_SEED_DEMO: ${QAAB_SEED_DEMO:-1}
+      # Passed through from .env / the shell; app/config.py holds the defaults.
+      SECRET_KEY:            # unset in development = random key kept in the data volume
+      CORS_ORIGINS:
+      QAAB_SEED_DEMO:        # always off when APP_ENV=production
+      FORWARDED_ALLOW_IPS:   # your reverse proxy, so per-IP rate limits see real clients
     volumes:
       - qaab-data:/srv/data
       - qaab-media:/srv/media
@@ -22,10 +23,7 @@ services:
       context: ./frontend
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8041}
-        NEXT_PUBLIC_DEMO: ${NEXT_PUBLIC_DEMO:-1}
     container_name: qaab-web
-    environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8041}
     ports:
       - "3041:3000"
     depends_on:

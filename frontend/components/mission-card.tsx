@@ -10,6 +10,7 @@ import { useI18n } from "./locale";
 export function MissionCard({ mission, i = 0 }: { mission: Mission; i?: number }) {
   const { t, locale } = useI18n();
   const left = daysLeft(mission.deadline);
+  const open = mission.is_open && left > 0;
   return (
     <motion.div
       initial={{ opacity: 0, y: 26 }} whileInView={{ opacity: 1, y: 0 }}
@@ -23,8 +24,8 @@ export function MissionCard({ mission, i = 0 }: { mission: Mission; i?: number }
           <img src={mediaUrl(mission.cover)} alt={mission.title} loading="lazy" decoding="async"
             className="size-full object-cover transition-transform duration-700 group-hover:scale-110" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-          <span className={`absolute top-3 rounded-full px-3 py-1 text-[11px] font-bold ltr:right-3 rtl:left-3 ${mission.is_open ? "bg-emerald-500 text-white" : "bg-black/60 text-white"}`}>
-            {mission.is_open ? t.missions.open : t.missions.closed}
+          <span className={`absolute top-3 rounded-full px-3 py-1 text-[11px] font-bold ltr:right-3 rtl:left-3 ${open ? "bg-emerald-500 text-white" : "bg-black/60 text-white"}`}>
+            {open ? t.missions.open : t.missions.closed}
           </span>
           <div className="absolute bottom-3 flex items-center gap-2 text-white ltr:left-4 rtl:right-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}

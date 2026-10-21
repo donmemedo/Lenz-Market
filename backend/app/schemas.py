@@ -22,11 +22,7 @@ def _category(v: str) -> str:
     return v
 
 
-def _lower(v: str) -> str:
-    return v.lower()
-
-
-Email = Annotated[EmailStr, AfterValidator(_lower)]
+Email = Annotated[EmailStr, AfterValidator(str.lower)]
 Text = Annotated[str, StringConstraints(strip_whitespace=True)]
 
 
@@ -61,7 +57,7 @@ class UserOut(PublicUserOut):
 
 
 class AuthOut(BaseModel):
-    token: str
+    token: Optional[str] = None  # only for non-browser API clients; the web app uses the httpOnly cookie
     user: UserOut
 
 
@@ -84,6 +80,7 @@ class PhotoOut(BaseModel):
     author: Optional[PublicUserOut] = None
     liked: bool = False
     can_download: bool = False
+    licenses: List[str] = []  # licenses the viewer already owns (detail views only)
 
 
 class PhotoIn(Strict):

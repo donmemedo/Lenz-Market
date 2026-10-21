@@ -1,21 +1,26 @@
 "use client";
 
 import { Check, ImagePlus, Loader2 } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/locale";
 import { useAuth } from "@/components/providers";
 import { Button, Notice, Reveal } from "@/components/ui";
-import { api, mediaUrl, type Category, type Mission, type Photo, type Upload } from "@/lib/api";
+import { api, loginPath, mediaUrl, type Category, type Mission, type Photo, type Upload } from "@/lib/api";
+import { daysLeft } from "@/lib/format";
 
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_BYTES = 12 * 1024 * 1024;
+// Persian and Arabic-Indic digits typed on a Persian keyboard become ASCII before parsing.
+const toAscii = (v: string) => v.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+  .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/\D/g, "");
 
 function UploadInner() {
   const { t, locale } = useI18n();
   const { locale: loc } = useParams<{ locale: string }>();
   const search = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
   const { user, ready } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -28,16 +33,21 @@ function UploadInner() {
   const [error, setError] = useState("");
   const [form, setForm] = useState({
     title: "", title_fa: "", description: "", category: "nature",
-    tags: "", price: 190000, mission_id: search.get("mission") ?? "",
+    tags: "", price: "190000", mission_id: search.get("mission") ?? "",
   });
 
-  useEffect(() => { if (ready && !user) router.replace(`/${loc}/login`); }, [ready, user, router, loc]);
+  useEffect(() => { if (ready && !user) router.replace(loginPath(loc, pathname)); }, [ready, user, router, loc, pathname]);
   useEffect(() => {
     void api<Category[]>("/api/categories").then(setCats).catch(() => {});
-    void api<Mission[]>("/api/missions?limit=20").then(setMissions).catch(() => {});
+    // Only missions that still accept entries; a stale ?mission= is dropped instead of failing after upload.
+    void api<Mission[]>("/api/missions?open_only=true&limit=20").then((all) => {
+      const open = all.filter((m) => daysLeft(m.deadline) > 0);
+      setMissions(open);
+      setForm((f) => (open.some((m) => String(m.id) === f.mission_id) ? f : { ...f, mission_id: "" }));
+    }).catch(() => {});
   }, []);
 
-  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+  useEffect(() => () => { if (preview.startsWith("blob:")) URL.revokeObjectURL(preview); }, [preview]);
 
   const pick = async (file?: File) => {
     if (!file) return;
@@ -49,7 +59,9 @@ function UploadInner() {
     try {
       const body = new FormData();
       body.append("file", file);
-      setUrl((await api<Upload>("/api/upload", { method: "POST", body })).url);
+      const up = await api<Upload>("/api/upload", { method: "POST", body });
+      setUrl(up.url);
+      setPreview(mediaUrl(up.thumb)); // the 640px server thumbnail replaces the full-size local decode
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   };
 
@@ -63,7 +75,7 @@ function UploadInner() {
         body: JSON.stringify({
           ...form,
           price: Number(form.price),
-          tags: form.tags.split(/[,،]/).map((s) => s.trim()).filter(Boolean).slice(0, 15),
+          tags: form.tags.split(/[,،]/).map((s) => s.trim().slice(0, 30)).filter(Boolean).slice(0, 15),
           mission_id: form.mission_id ? Number(form.mission_id) : null,
           url,
         }),
@@ -96,7 +108,7 @@ function UploadInner() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <Reveal>
-        <h1 className="text-4xl font-black tracking-tight"><span className="gradient-text">{t.upload.title}</span></h1>
+        <h1 className="text-4xl font-black ltr:tracking-tight"><span className="gradient-text">{t.upload.title}</span></h1>
         <p className="mt-2 text-muted">{t.upload.sub}</p>
       </Reveal>
 
@@ -135,8 +147,8 @@ function UploadInner() {
               <select className={input} aria-label={t.upload.category} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
                 {cats.map((c) => <option key={c.slug} value={c.slug}>{locale === "fa" ? c.fa : c.en}</option>)}
               </select>
-              <input className={input} type="number" inputMode="numeric" min={10000} max={500000000} step={10000} aria-label={t.upload.price} placeholder={t.upload.price}
-                value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
+              <input className={input} inputMode="numeric" dir="ltr" aria-label={t.upload.price} placeholder={t.upload.price}
+                value={form.price} onChange={(e) => setForm({ ...form, price: toAscii(e.target.value) })} />
             </div>
             <input className={input} aria-label={t.upload.tags} placeholder={t.upload.tags} value={form.tags}
               onChange={(e) => setForm({ ...form, tags: e.target.value })} />
