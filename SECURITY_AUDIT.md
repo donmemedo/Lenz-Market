@@ -13,7 +13,7 @@ A second, independent review of the fixed code (Opus reviewers, every finding cr
 54 follow-up items (16 of them simplification suggestions), mostly regressions and deployment edge cases the
 first fixes introduced. The real ones are fixed; the few left open are listed under residual risk.
 
-Photo listing pages now run 4 SQL queries instead of 25–50, with roughly 10× lower latency.
+Photo listing pages now run 5 SQL queries instead of 25–50, with roughly 4× lower latency.
 The only control that costs more is password hashing (5× PBKDF2 iterations, rate-limited).
 
 ## Method
@@ -59,7 +59,7 @@ Severity is after independent cross-checking. **Fixed** means a regression test 
 | AZ-15 | Medium | Public stats inflated by a hard-coded 4.82B and ×380/×1400/×14 multipliers | Real counts only *(no test)* |
 | AZ-16 | Low | Pagination caps bypassable (negative offset, unbounded creator list, long search) | `ge`/`le` bounds, 100-char search with literal LIKE wildcards |
 | CF-05 | Low | API container ran as root; `/docs` always public | Non-root user, Docker `HEALTHCHECK`; docs off in production *(no test)* |
-| PF-01 | Perf | N+1 queries in photo serialization (25 anon / 50 signed-in per page) | Batched author and like lookups: 4 queries |
+| PF-01 | Perf | N+1 queries in photo serialization (25 anon / 50 signed-in per page) | Batched author, like and purchase lookups: 5 queries |
 | PF-02 | Perf | SQLite without WAL/busy timeout | WAL, `busy_timeout`, `synchronous=NORMAL`, indexes for sort columns |
 | PF-03 | Perf | Full-viewport `filter: blur(90px)` re-rasterized on every animation frame | Radial gradients, transform-only animation that stops after one cycle |
 
@@ -132,16 +132,20 @@ graph TD
 
 ## Performance
 
-Measured in-process, original code with its original dependencies, then this branch, back to back on the same
-machine. The machine was heavily loaded (load average ~45 on 4 cores), so absolute times are inflated; compare ratios.
+Measured in-process: the original code with its original dependencies, then this branch, back to back on the same
+machine (4 cores shared with other workloads, load average 12–30 during the run). Compare ratios, not absolute times.
 
 | Request | SQL before | SQL after | p50 before | p50 after |
 |---|---|---|---|---|
-| `GET /api/photos?limit=24` anonymous | 25 | 4 | 327 ms | 27 ms |
-| `GET /api/photos?limit=24` signed in | 50 | 4 | 475 ms | 24 ms |
-| `GET /api/creators` | 1 | 1 | 34 ms | 10 ms |
-| `GET /api/stats` | 4 | 4 | 47 ms | 13 ms |
-| `POST /api/auth/login` | 1 | 1 | 722 ms | 2,201 ms |
+| `GET /api/photos?limit=24` anonymous | 25 | 5 | 55 ms | 14 ms |
+| `GET /api/photos?limit=24` signed in | 50 | 5 | 74 ms | 19 ms |
+| `GET /api/creators` | 1 | 1 | 5 ms | 7 ms |
+| `GET /api/stats` | 4 | 0 (cached) | 7 ms | 6 ms |
+| `POST /api/auth/login` | 1 | 1 | 261 ms | 1,999 ms |
+
+The list query count stays flat as pages grow (it was 1 + 2 per photo). Login is slower by design: 5× PBKDF2
+iterations, measured here on a contended CPU; the rate limiter also turned two of the benchmark's seven rapid
+logins for one account into 429s, which is the intended behaviour.
 
 How each security control stays cheap:
 
